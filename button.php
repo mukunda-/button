@@ -11,9 +11,9 @@
 	<script src="jquery.mousewheel.min.js"></script>
 	<script src="button.js"></script>
 	<title>hot topic</title>
-	 
+	
 </head>
-<body>
+<body>	
 	<div id="magicbox"></div>
 	<div id="content">
 		
