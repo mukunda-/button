@@ -355,7 +355,7 @@ function ShowTopic() {
 		echo '<div class="reply">
 				 <div class="replyinput init" id="replyinput" contenteditable="true">discuss...</div>
 			  </div>';
-			  
+		
 		?>
 		<script>
 			$('#replyinput').focus( function() {
@@ -363,6 +363,11 @@ function ShowTopic() {
 					$(this).removeClass( 'init' );
 					$(this).html("");
 				}
+			});
+			
+			$("#replyinput").keydown( function() {
+				if( loading ) return false;
+				setTimeout( replyKeyPressed, 0 );
 			});
 			$('#replyinput').click( function() {
 			
@@ -377,11 +382,14 @@ function ShowTopic() {
 				
 				
 			});
+			compose_sending = false;
 		</script>
 		<?php
 	}
 	
 	echo '</div>';
+	echo '<div class="submit" onclick="submitComment()" id="submit">submit</div>';
+		
 	echo '<div class="padding" id="padding"></div>';
 	
 	

@@ -35,17 +35,17 @@ function submitComposition() {
 	
 	compose_sending = true;
 	$("#composition").attr('contentEditable', false);
-	$("#composition").removeClass('composing');
-	
-	$("#submit").attr( 'disabled', 'disabled' );
-	$("#submit").css( 'opacity', 0.0 );
-	$("#submit").css( 'cursor', 'default' );
+	//$("#composition").removeClass('composing');
+	hideSubmit(); 
 			
 	$.post( "compose.php", { text: content } )
 		.done( function( data ) {
 			alert( data );
 			if( data == 'error' ) {
 				alert( 'couldn\'t post topic.' );
+				compose_sending = false; 
+				$( "#composition" ).attr( 'contentEditable', true ); 
+				showSubmit();
 			} else if( data == 'expired' ) {
 				loadPage( 'error.php?expired' );
 			} else if( data == 'empty' ) {
@@ -58,7 +58,86 @@ function submitComposition() {
 		})
 		.fail( function() {
 			alert( 'couldn\'t post topic.' );
+			 
+			compose_sending = false;
+			$( "#replyinput" ).attr( 'contentEditable', true ); 
+			showSubmit();
 		});
+}
+
+function submitComment() {
+	if( loading ) return false;
+	if( compose_sending ) return false;
+	if(  $('#replyinput').text().trim() == "" ) {
+		return false;
+	} 
+	var content = readText( $('#replyinput') );  
+	
+	compose_sending = true;
+	$("#replyinput").attr( 'contentEditable', false );  
+	hideSubmit();
+			
+	$.post( "reply.php", { text: content } )
+		.done( function( data ) {
+			var reopeninput = false;
+			alert( data );
+			if( data == 'error' ) {
+				reopeninput = true;
+				alert( 'couldn\'t post topic.' );
+				
+			} else if( data == 'old' ) {
+				
+				alert( 'this topic is not accepting further discussion.' );
+				refreshContent(); 
+			} else if( data == 'tooshort' ) {
+				reopeninput = true;
+				alert( 'too short.' );
+			} else if( data == 'toolong' ) {
+				reopeninput = true;
+				alert( 'too long.' );
+			} else if( data == 'pleasewait' ) {
+				reopeninput = true;
+				alert( 'please wait a while first.' );
+				
+			} else {
+				refreshComments(); 
+			}
+			
+			if( reopeninput ) {
+				compose_sending = false;
+				$( "#replyinput" ).attr( 'contentEditable', true ); 
+				showSubmit();
+			}
+		})
+		.fail( function() {
+			alert( 'couldn\'t post topic.' );
+			
+			compose_sending = false;
+			$( "#replyinput" ).attr( 'contentEditable', true ); 
+			showSubmit();
+		});
+}
+
+//-----------------------------------------------------------------------------
+function hideSubmit() {
+	
+	var submit = $("#submit");
+	submit.attr( 'disabled', 'disabled' );
+	submit.css( 'opacity', 0.0 );
+	submit.css( 'cursor', 'default' );
+}
+
+function showSubmit( parent ) {
+	var submit = $("#submit");
+	if( parent.text().trim() != "" ) {
+		submit.css( 'opacity', 1.0 );
+		submit.css( 'cursor', 'pointer' );
+	} else {
+		
+		submit.attr( 'disabled', 'disabled' );
+		submit.css( 'opacity', 0.0 );
+		submit.css( 'cursor', 'default' );
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -66,16 +145,16 @@ function compositionKeyPressed() {
 	
 	adjustTop();
 	if( !compose_sending ) {
-		if( $("#composition").text().trim() != "" ) {
-			$("#submit").css( 'opacity', 1.0 );
-			$("#submit").css( 'cursor', 'pointer' );
-		} else {
-			
-			$("#submit").attr( 'disabled', 'disabled' );
-			$("#submit").css( 'opacity', 0.0 );
-			$("#submit").css( 'cursor', 'default' );
-		}
+		showSubmit( $("#composition") ); 
 	}
+}
+
+function replyKeyPressed() {
+
+	if( !compose_sending ) {
+		showSubmit( $("#replyinput") ); 
+	}
+	 
 }
   
 
@@ -236,4 +315,9 @@ $(document).bind('keydown', function(e) {
 		loadPage('content.php');
 		return false;
     }
+});
+//-----------------------------------------------------------------------------
+$(document).bind('mousedown', function(e) {
+
+	if( loading_fading_out ) return false;
 });
