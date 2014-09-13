@@ -1,0 +1,211 @@
+body {
+	background-color: #00B4FF;
+	font-family: Noto Sans;
+	font-size: 28px;
+	overflow:hidden;
+}
+
+
+#magicbox {
+	display:none;
+}
+
+.topic, .options>div, .replies>div, .submit {
+	
+	border-radius: 16px;
+	box-shadow: 4px 6px 7px rgba(0,0,0,0.04);
+	
+}
+
+#submit {
+	
+	cursor: default;
+	opacity : 0;
+	transition: opacity 0.5s;
+}
+
+.topic { 
+	position:relative;
+	font-size: 30px;
+
+	max-width: 550px;
+	padding: 24px 48px 24px 48px;
+	background-color: #e6f8ff;
+	color: #111119;
+	margin:auto;
+	text-align:center;
+	word-wrap:break-word;
+}
+
+.topic  .compose {
+	background: none;
+	/*font-size: 22px;*/
+	border: none;
+	width: 100%;
+	overflow: hidden;
+	border-bottom: 1px dotted rgba(0,0,0,0.3);
+	min-height:42px;
+	min-width: 96px;
+	word-wrap:break-word;
+	outline: none;
+}
+
+.topic.nothing {
+	background: none;
+	box-shadow: none;
+	
+}
+
+.topic .good {
+	position: absolute;
+	left: 12px;
+	top: 4px;
+	width: 32px;
+	height: 32px; 
+	cursor: pointer;
+}
+.topic .bad {
+	position: absolute;
+	right: 12px;
+	top: 4px;
+	width: 32px;
+	height: 32px; 
+	cursor: pointer;
+}
+.topic .good:hover {
+	
+}
+
+.submit {
+	
+	background-color: #e6f8ff;
+	margin: auto;
+	margin-top: 8px;
+	width: 128px;
+	text-align:center;
+	padding: 4px;
+	font-size: 80%;
+	cursor: pointer;
+	
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	transition: background-color 0.25s;
+}
+
+.submit:hover {
+	background-color: #fff;	
+	transition: background-color 0.25s;
+}
+.submit:active {
+	background-color: #eee;	
+	transition: background-color 0s;
+	box-shadow: 4px 6px 7px rgba(0,0,0,0.04), inset 0px 0px 4px rgba(0,0,0,0.5);
+}
+
+.options {	
+	text-align: center;
+	margin-top: 12px;
+	font-size: 18px;
+}
+
+.options > div {
+	font-family: Coming Soon;
+	width: 100px;
+	text-align:center;
+	display: inline-block;
+	width: 100px; 
+	padding: 6px;
+}
+
+.options .good {
+	background-color: #baf0b8;
+}
+.options .bad {
+	display: inline-block;
+	background-color: #d31a1a;
+}
+
+.options .change {
+	display: inline-block;
+	background-color: #f0f1b9;
+}
+
+.options .change:hover {
+	background-color: #f1f1f1;
+	cursor: pointer;
+}
+
+.replies {
+	width: 100%;
+	max-width: 644px;
+	margin: auto;
+}
+
+.replies .reply {
+	vertical-align:top;
+	position: relative;
+	margin: auto;
+	margin-top: 12px;
+	max-width: 574px;
+	display: inline-block;
+	/*width: 574px;*/
+	padding: 12px 36px 12px 36px;
+	font-size: 22px;
+	background-color: #e6f8ff;
+	word-wrap:break-word;
+}
+
+.replies  .reply  .replyinput {
+	background: none;
+	font-size: 22px;
+	border: none;
+	width: 100%;
+	overflow: hidden;
+	resize: none;
+	height:auto;
+	border-bottom: 1px dotted rgba(0,0,0,0.3);
+	min-height:36px;
+	min-width: 96px;
+	word-wrap:break-word;
+    
+}
+.replies  .reply  .replyinput.init {
+	color: #999;
+}
+
+.replies .rvote {
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	cursor: pointer;
+	
+}
+
+.replies .rvote.rgood {
+	top: 11px;
+	left: 10px;
+}
+
+.replies .rvote.rbad {
+	left: 10px;
+	top: 31px;
+}
+
+.replies .rvote img {
+	width: 16px;
+	height: 16px;
+	vertical-align:top;
+}
+
+
+.padding {
+	width: 100%;
+}
+
+#content {
+	opacity : 0;
+	transition: opacity 0.5s;
+}
