@@ -1,12 +1,15 @@
 <?php
- 
+
+// commentvote.php POST
+//  page = topic id
+//  challenge = challenge code
+//  comment = comment id
+//  vote = "good" or "cancer"
+
 require_once "sql.php";
 require_once "topic_states.php";
 require_once "config.php";
 require_once "util.php";
-
-$MAXCHARS = 220;
-$MAXLINES = 8;
 
 //-----------------------------------------------------------------------------
 function ReadCookieInt( $key ) {
@@ -16,10 +19,11 @@ function ReadCookieInt( $key ) {
 
 //-----------------------------------------------------------------------------
 try {
-	
-	if( !isset( $_POST['text'] ) ||
+
+	if( !isset( $_POST['page'] ) ||
 		!isset( $_POST['challenge'] ) ||
-		!isset( $_POST['page'] ) ||
+		!isset( $_POST['comment'] ) ||
+		!isset( $_POST['vote'] ) ||
 			!isset($_COOKIE['challenge']) || 
 			!isset($_COOKIE['page']) ) {
 		
@@ -30,48 +34,58 @@ try {
 	$page = ReadCookieInt( 'page' );
 	if( $challenge != $_POST['challenge'] ||
 		$page != $_POST['page'] ) {
-		exit( 'wrongpage' );
+		
+		exit( 'error' );
 	}
-	// sanitize text: 
-	$text = $_POST['text'];
-	$text = str_replace( '[[br]]', "\n", $text );
-	$text = trim($text);
-	if( $text == "" ) exit( 'tooshort' ); 
-	$text = htmlspecialchars($text); // escape html codes
-	$text = nl2br( $text, false ); // convert newlines to html
-	if( strlen( $text ) > $MAXCHARS || 
-			substr_count( $text, "<br>" ) > $MAXLINES ) {
-		exit( 'toolong' );
+	
+	$comment = intval( $_POST['comment'] );
+	if( $comment == 0 ) exit( "error" );
+	
+	$vote = $_POST['vote'];
+	$voteval = "";
+	if( $vote == "good" ) {
+		$voteval = "TRUE";
+	}  else if( $vote == "cancer" ) {
+		$voteval = "FALSE";
+	} else {
+		exit( 'error' );
 	}
 	
 	$sql = GetSQL();
-	$s_live = TopicStates::Live;
-	$sql->safequery( "LOCK TABLES Topics READ, Comments WRITE" );
+	$sql->safequery( "LOCK TABLES Topics READ, Comments READ, CommentVotes WRITE" );
 	$result = $sql->safequery( 
-		"SELECT id FROM Topics ".
+		"SELECT 1 FROM Topics ".
 		" WHERE id=$page AND challenge=$challenge AND ".
 		" state=". TopicStates::Live );
-		
 	if( $result->num_rows == 0 ) {
 		$sql->safequery( "UNLOCK TABLES" );
-		exit( 'error' );
+		exit( 'error' ); // topic is closed or invalid.
 	}
+	// slight discrepancy here regarding 
 	$xip = GetIPHex();
-	$text = $sql->real_escape_string( $text );
-	$sql->safequery( "INSERT INTO Comments (topic,ip,goods,bads,time,content) ".
-					 " VALUES ($page,x'$xip',0,0,".time().",'$text')" );
-				
+	
+	$result = $sql->safequery( "SELECT 1 FROM Comments WHERE id=$comment AND topic=$page" );
+	if( $result->num_rows == 0 ) {
+		$sql->safequery( "UNLOCK TABLES" );
+		exit( 'error' ); // comment doesn't exist.
+	}
+	
+	$sql->safequery( 
+		"INSERT INTO CommentVotes ( commentid, ip, vote ) ".
+		" VALUES ( $comment, x'$xip', $voteval ) ".
+		" ON DUPLICATE KEY UPDATE vote=$voteval" );
+	
 	if( $sql->affected_rows == 0 ) {
 		$sql->safequery( "UNLOCK TABLES" );
 		exit( 'error' );
 	}
-	
 	$sql->safequery( "UNLOCK TABLES" );
-	
 	exit( 'okay.' );
 	
 } catch ( Exception $e ) {
-	exit( 'error' );
+	throw $e;
 }
+
+exit ( "error" );
 
 ?>

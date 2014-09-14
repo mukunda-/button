@@ -3,9 +3,11 @@
 require_once "sql.php";
 require_once "topic_states.php";
 require_once "config.php";
- 
+require_once "util.php";
+ /*
 //-----------------------------------------------------------------------------
 class Comment {
+	public $id;
 	public $content;
 	public $goods;
 	public $bads;
@@ -15,13 +17,14 @@ class Comment {
 	public function __construct( $row ) {
 		// create from SQL row
 		
+		$this->id = $row['id'];
 		$this->content = $row['content'];
 		$this->goods = $row['goods'];
 		$this->bads = $row['bads'];
 		$this->time = $row['time'];
 		$this->vote = $row['vote'];
 	}
-}
+}*/
 
 //-----------------------------------------------------------------------------
 class Topic {
@@ -29,7 +32,7 @@ class Topic {
 	public $ip;
 	public $content = "";
 	public $state;
-	public $comments = array();
+	//public $comments = array();
 	public $goods;
 	public $bads;
 	public $vote; // the vote for this ip, TRUE, FALSE, or NULL
@@ -75,7 +78,7 @@ class Topic {
 		}
 		
 		// get comments
-		
+		/*
 		$result = $sql->safequery( 
 			"SELECT goods, bads, time, content, vote FROM Comments ".
 			" LEFT JOIN CommentVotes ON (commentid=id AND CommentVotes.ip=x'$xip') ".
@@ -93,14 +96,10 @@ class Topic {
 		} else if( $state == TopicStates::Live ) {
 			// sort comments randomly
 			shuffle( $this->comments );
-		}
+		}*/
 	}
 }
 
-//-----------------------------------------------------------------------------
-function GetIPHex() {
-	return bin2hex(inet_pton( $_SERVER['REMOTE_ADDR'] ));
-}
  
 //-----------------------------------------------------------------------------
 function ReadCookieInt( $key ) {
@@ -122,7 +121,7 @@ function IsPageValid( $page, $challenge ) {
 	
 	$sql = GetSQL();
 	$result =$sql->safequery( 
-		"SELECT state,time FROM Topics WHERE id=$page AND challenge=$challenge");
+		"SELECT state,time, goods,bads FROM Topics WHERE id=$page AND challenge=$challenge");
 	
 	$row = $result->fetch_assoc();
 	if( $row === FALSE ) return false;
@@ -133,14 +132,66 @@ function IsPageValid( $page, $challenge ) {
 	}
 	if( $row['state'] == TopicStates::Composing && time() >= ($row['time'] + $GLOBALS['COMPOSE_TIMEOUT'] ) ) {
 		// delete composition, they took too long.
-		$sql->safequery( "DELETE FROM Topics WHERE id=$page" );
+		$sql->safequery( 
+			"DELETE FROM Topics WHERE id=$page AND state=".TopicStates::Composing );
 		return false;
 	}
+	
+	if( 
 	return true;
 }
 
-if( !IsPageValid( $g_page, $g_challenge ) ) {
-	$g_page = 0;
+//-----------------------------------------------------------------------------
+function FinalizeTopic( $id ) {
+	$sql = GetSQL();
+	$sql->safequery( 
+			"LOCK TABLES ".
+			"Topics WRITE, Comments WRITE, CommentVotes READ" );
+	
+	$sql->safequery(
+			"UPDATE Topics SET state=".TopicStates::Old.
+			" WHERE state=".TopicStates::Live." AND id=$id" );
+	if( $sql->affected_rows == 0 ) {
+		// the topic was already finalized
+		$sql->safequery( "UNLOCK TABLES" );
+		return;
+	}
+	
+	
+}
+
+//-----------------------------------------------------------------------------
+function CheckTopicExpired( $id, $goods, $bads, $time ) {
+	$totalvotes = (float)( $goods + $bads );
+	if( $totalvotes == 0 ) $totalvotes=1.0;
+	$score = (float)$goods / $totalvotes;
+	$removetime = 0; 
+	$delete = false;
+	
+	if( $score < 0.6 ) {
+		// under score 60, delete after 5 minutes
+		// remove after 5 minutes
+		$removetime = 60*5;
+		$delete = true;
+	} else {
+		// "old" after 30 minutes
+		$removetime = 60*30;
+	}
+	
+	if( time() >= ($row['time'] + $removetime) ) {
+		
+		// topic expired.
+		if( $delete ) {
+			$sql = GetSQL();
+			$sql->safequery( 
+			"UPDATE Topics SET state=".TopicStates::Deleted.
+			" WHERE state=".TopicStates::Live." AND id=$id" );
+		} else {
+			FinalizeTopic( $id );
+		}
+		return true;
+	}
+	return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -155,7 +206,8 @@ function GetNewPage() {
 	$xip = GetIPHex();
 	
 	$result = $sql->safequery( 
-		"SELECT id,state,time,vote,goods,bads FROM Topics LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip=x'$xip')".
+		"SELECT id,state,time,vote,goods,bads FROM Topics ".
+		" LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip=x'$xip')".
 		" WHERE (state=$s_live OR state=$s_comp) LIMIT $SLOTS");
 	
 	if( $result->num_rows < $SLOTS ) {
@@ -191,33 +243,13 @@ function GetNewPage() {
 			}
 		} else if( $row['state'] == $s_live ) {
 		
-			$totalvotes = ($row['goods']+$row['bads']);
-			if( $totalvotes == 0 )$totalvotes=1;
-			$score = (float)$row['goods'] / ((float)$totalvotes);
-			$removetime = 60*5;
-			$delete = false;
-			if( $score < 0.6 ) {
-				// remove after 5 minutes
-				$removetime = 60*5;
-				$delete = true;
-			} else {
-				// remove after 30 minutes
-				$removetime = 60*30;
-			}
-			
-			if( time() >= ($row['time'] + $removetime) ) {
-				// topic expired.
-				if( $delete ) {
-					$sql->safequery( 
-					"UPDATE Topics SET state=".TopicStates::Deleted.
-					" WHERE state=".$s_live." AND id=".$row['id'] );
-				} else {
-					$sql->safequery( 
-					"UPDATE Topics SET state=".TopicStates::Old.
-					" WHERE state=".$s_live." AND id=".$row['id'] );
-				}
+			if( CheckTopicExpired( $row['id'], $row['goods'], 
+									$row['bads'], $row['time'] ) ) {
+				
 				continue;
 			}
+			
+			
 			
 			if( $row['vote'] !== FALSE ) {
 				$choices[] = $row['id'];
@@ -236,7 +268,9 @@ function GetNewPage() {
 	setcookie( "challenge", $g_challenge, time() + 60*60*30, $apath );
 }
 
-//$g_page=0; // DEVBUG
+if( !IsPageValid( $g_page, $g_challenge ) ) {
+	$g_page = 0;
+}
 
 if( $g_page == 0 ) {
 	// try to find a new page
@@ -245,27 +279,17 @@ if( $g_page == 0 ) {
 	// at this point mypage is valid
 	// and 0 is valid which means "no page available."
 }
-
-
-//-----------------------------------------------------------------------------
-function StartTopic( $content ) {
-	// content must be under 200 characters.
-	$content = substr( $content, 0, 200 );
-	$sql = GetSQL();
-	$content = $sql->real_escape_string( $content );
-	$time = time();
-	
-	$sql->safequery( "
-		INSERT INTO Topics (score,time,content) VALUES
-		(0, $time, '$content')" );
-	
-	$result = $sql->safequery( "SELECT LAST_INSERT_ID()" );
-	$row = $result->fetch_row();
-	return $row[0];
-}
+ 
 
 function ShowTopic() {
 	global $g_page, $g_challenge;
+	
+	echo '<script>';
+	echo "g_page      = $g_page;";
+	echo "g_challenge = $g_challenge;";
+	echo '</script>';
+	
+	
 	if( $g_page == 0 ) {
 		echo '
 			<div class="topic nothing" id="topic">
@@ -302,37 +326,42 @@ function ShowTopic() {
 		
 		<script>
 			$("#composition").keydown( function() {
-				if( loading ) return false;
+				if( g_loading ) return false;
 				setTimeout( compositionKeyPressed, 0 );
 			});
-			compose_sending = false;
+			g_compose_sending = false;
 		</script>
 		
 		<?php
 		return true;
 	}
 	
+	$badstring = mt_rand( 0, 25 ) == 0 ? "cancer": "bad";
 	echo '<div class="topic" id="topic">';
 	echo $topic->content;
 	if( $topic->state == TopicStates::Live ) {
+		echo '<script>g_topic_state="live"</script>';
 		if( $topic->vote === true ) {
-			echo '<div class="good" id="goodbutton"><img src="star.png" alt="good"></div>';
+			echo '<div class="good" id="goodbutton"><img src="star.png" alt="good" title="good"></div>';
+			echo '<div class="bad" id="badbutton"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
+		} else if( $topic->vote === false ) {
+			echo '<div class="good" id="goodbutton"><img src="unstar.png" alt="good" title="good"></div>';
+			echo '<div class="bad" id="badbutton"><img src="bad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
 		} else {
-			echo '<div class="good" id="goodbutton"><img src="unstar.png" alt="good"></div>';
+			echo '<div class="good" id="goodbutton" onclick="voteTopicGood()"><img src="unstar.png" alt="good" title="good"></div>';
+			echo '<div class="bad" id="badbutton" onclick="voteTopicBad()"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
 		}
-		if( $topic->vote === false ) {
-			echo '<div class="bad" id="badbutton"><img src="bad.png" alt="bad"></div>';
-		} else {
-			echo '<div class="bad" id="badbutton"><img src="notbad.png" alt="bad"></div>';
-		}
+		 
 		
 	} else if( $topic->state == TopicStates::Old ) {
-		// todo print good/bad stats
+		echo '<script>g_topic_state="old"</script>';
+		// print score
 	}
 	echo '</div>';
 	
 	echo '<div class="replies" id="replies">';
-	
+	echo     '<div class="replylist" id="replylist">';
+	/*
 	foreach( $topic->comments as $comment ) {
 		echo '<div class="reply">';
 		echo    $comment->content;
@@ -348,11 +377,12 @@ function ShowTopic() {
 				echo '<div class="rvote rbad" ><img src="notbad.png" alt="bad"></div>';
 			}
 		}
-		echo '</div>';
-	}
+		echo '</div>'; // reply
+	}*/
+	echo '</div>'; // replylist
 	
 	if( $topic->state == TopicStates::Live ) {
-		echo '<div class="reply">
+		echo '<div class="reply" id="replyinputbox">
 				 <div class="replyinput init" id="replyinput" contenteditable="true">discuss...</div>
 			  </div>';
 		
@@ -366,28 +396,23 @@ function ShowTopic() {
 			});
 			
 			$("#replyinput").keydown( function() {
-				if( loading ) return false;
+				if( g_loading ) return false;
 				setTimeout( replyKeyPressed, 0 );
 			});
-			$('#replyinput').click( function() {
-			
-				mb = $('#magicbox');
-				var content = $(this).html();
-				console.log( content );
-				content = content.replace( /<br>/g, '[[br]]' );
-				console.log( content );
-				mb.html( content );
-				console.log( mb.text().replace( /\[\[br\]\]/g, "\n" ) );
-				
-				
-				
-			});
-			compose_sending = false;
+			 
+			g_compose_sending = false;
+			g_last_comment = 0;
+			g_num_replies = 0;
+			g_refreshing_comments = false;
+			refreshComments();
 		</script>
+		
 		<?php
 	}
 	
-	echo '</div>';
+	echo '</div>'; // replies
+	
+	
 	echo '<div class="submit" onclick="submitComment()" id="submit">submit</div>';
 		
 	echo '<div class="padding" id="padding"></div>';

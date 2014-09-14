@@ -24,37 +24,37 @@ $sql->safequery(
 $sql->safequery(
 	"CREATE TABLE IF NOT EXISTS Topics (   
 		id INT AUTO_INCREMENT PRIMARY KEY ,
-		ip VARBINARY(16),          
-		state TINYINT NOT NULL,    
-		challenge INT NOT NULL,    
+		ip VARBINARY(16),
+		state TINYINT NOT NULL,
+		challenge INT NOT NULL,
 		goods INT NOT NULL,
-		bads INT NOT NULL, 
-		time INT NOT NULL, 
+		bads INT NOT NULL,
+		time INT NOT NULL,
 		content VARCHAR(200) NOT NULL )" );
 
 $sql->safequery(
 	"CREATE TABLE IF NOT EXISTS Comments (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		topic INT NOT NULL,
-		ip VARBINARY(16),  
+		ip VARBINARY(16),
 		goods INT NOT NULL,
 		bads INT NOT NULL,
 		time INT NOT NULL,
 		content VARCHAR(200) NOT NULL,
 		INDEX USING BTREE(topic) )" );	
-		
+ 
 $sql->safequery(
 	"CREATE TABLE IF NOT EXISTS TopicVotes (
 		topicid INT,
 		ip VARBINARY(16),
 		vote BOOL,
 			PRIMARY KEY( topicid, ip ) )" );	
-			
+ 
 $sql->safequery(
 	"CREATE TABLE IF NOT EXISTS CommentVotes (
 		commentid INT,
 		ip VARBINARY(16),  
 		vote BOOL,
 			PRIMARY KEY( commentid, ip ) )" );	
-			
+ 
 ?>

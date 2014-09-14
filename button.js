@@ -1,11 +1,24 @@
 
-var loading = false;
-var loading_fading_out = false;
-var loading_page_content = null;
-var compose_sending = false;
+var g_loading = false;
+var g_loading_fading_out = false;
+var g_loading_page_content = null;
+var g_compose_sending = false;
+var g_page = 0;
+var g_challenge = 0;
+
+var g_last_comment = 0;
+var g_num_comments = 0;
+var g_topic_state = "old";
+
+var g_last_comment_refresh = 0;
+var g_refreshing_comments = false;
+var g_autorefresh_comments_handle = null;
 
 var FADE_OUT_TIME = 500; 
 var FADE_IN_TIME = 500;
+
+var refreshCommentsQueue = $({});
+var g_refresh_comments_ajax = null;
 
 //-----------------------------------------------------------------------------
 // read element text with converted line breaks
@@ -25,27 +38,26 @@ function readText( element ) {
 
 //-----------------------------------------------------------------------------
 function submitComposition() {
-	if( loading ) return false;
-	if( compose_sending ) return false;
+	if( g_loading ) return false;
+	if( g_compose_sending ) return false;
 	if(  $('#composition').text().trim() == "" ) {
 		return false;
 	}
 	
 	var content = readText( $('#composition') );  
 	
-	compose_sending = true;
+	g_compose_sending = true;
 	$("#composition").attr('contentEditable', false);
 	//$("#composition").removeClass('composing');
 	hideSubmit(); 
 			
-	$.post( "compose.php", { text: content } )
+	$.post( "compose.php", { text: content, page: g_page, challenge: g_challenge } )
 		.done( function( data ) {
-			alert( data );
 			if( data == 'error' ) {
 				alert( 'couldn\'t post topic.' );
-				compose_sending = false; 
+				g_compose_sending = false; 
 				$( "#composition" ).attr( 'contentEditable', true ); 
-				showSubmit();
+				showSubmit( $("#composition") );
 			} else if( data == 'expired' ) {
 				loadPage( 'error.php?expired' );
 			} else if( data == 'empty' ) {
@@ -59,35 +71,38 @@ function submitComposition() {
 		.fail( function() {
 			alert( 'couldn\'t post topic.' );
 			 
-			compose_sending = false;
+			g_compose_sending = false;
 			$( "#replyinput" ).attr( 'contentEditable', true ); 
-			showSubmit();
+			showSubmit( $("#composition") );
 		});
 }
 
 function submitComment() {
-	if( loading ) return false;
-	if( compose_sending ) return false;
+	if( g_loading ) return false;
+	if( g_compose_sending ) return false;
 	if(  $('#replyinput').text().trim() == "" ) {
 		return false;
 	} 
 	var content = readText( $('#replyinput') );  
 	
-	compose_sending = true;
+	g_compose_sending = true;
 	$("#replyinput").attr( 'contentEditable', false );  
 	hideSubmit();
 			
-	$.post( "reply.php", { text: content } )
+	$.post( "reply.php", { text: content, 
+	                       page: g_page, 
+						   challenge: g_challenge  } )
+						   
 		.done( function( data ) {
 			var reopeninput = false;
-			alert( data );
+			
 			if( data == 'error' ) {
 				reopeninput = true;
-				alert( 'couldn\'t post topic.' );
+				alert( 'couldn\'t post comment.' );
 				
 			} else if( data == 'old' ) {
 				
-				alert( 'this topic is not accepting further discussion.' );
+				alert( 'too late.' );
 				refreshContent(); 
 			} else if( data == 'tooshort' ) {
 				reopeninput = true;
@@ -100,21 +115,24 @@ function submitComment() {
 				alert( 'please wait a while first.' );
 				
 			} else {
-				refreshComments(); 
+				
+				$( "#replyinputbox" ).addClass( 'fade' ); 
+				$( "#replyinputbox" ).css( 'opacity', 0 ); 
+				setTimeout( refreshComments, 500 );
 			}
 			
 			if( reopeninput ) {
-				compose_sending = false;
+				g_compose_sending = false;
 				$( "#replyinput" ).attr( 'contentEditable', true ); 
-				showSubmit();
+				showSubmit( $( "#replyinput" ) );
 			}
 		})
 		.fail( function() {
-			alert( 'couldn\'t post topic.' );
+			alert( 'couldn\'t post comment.' );
 			
-			compose_sending = false;
+			g_compose_sending = false;
 			$( "#replyinput" ).attr( 'contentEditable', true ); 
-			showSubmit();
+			showSubmit( $( "#replyinput" ) );
 		});
 }
 
@@ -144,19 +162,18 @@ function showSubmit( parent ) {
 function compositionKeyPressed() {
 	
 	adjustTop();
-	if( !compose_sending ) {
+	if( !g_compose_sending ) {
 		showSubmit( $("#composition") ); 
 	}
 }
 
 function replyKeyPressed() {
 
-	if( !compose_sending ) {
+	if( !g_compose_sending ) {
 		showSubmit( $("#replyinput") ); 
 	}
 	 
 }
-  
 
 //-----------------------------------------------------------------------------
 function adjustTop() {
@@ -237,7 +254,7 @@ function fadeIn( content ) {
 	output.css( 'opacity', 1 ); // fade in
 	setTimeout(
 		function() {
-			loading = false;
+			g_loading = false;
 		}, FADE_IN_TIME );
 }
 
@@ -250,20 +267,20 @@ function loadPage( url, delay ) {
 	// positive delay = delay+CONST
 	// negative delay = -delay
 	
-	loading = true;
+	g_loading = true;
 	output = $('#content');
 	output.css( 'opacity', 0 ); // fade out
 	
-	loading_fading_out = true;
+	g_loading_fading_out = true;
 	
 	// whichever one of these finishes first (fadeout/ajax)
 	// thats the one that sets the content and fades in
 	setTimeout( 
 		function() {
-			loading_fading_out = false; 
-			if( loading_page_content != null ) {
-				fadeIn( loading_page_content );
-				loading_page_content = null;
+			g_loading_fading_out = false; 
+			if( g_loading_page_content != null ) {
+				fadeIn( g_loading_page_content );
+				g_loading_page_content = null;
 			} else {
 				// we finished first, prime the output.
 				output.html("");
@@ -273,16 +290,16 @@ function loadPage( url, delay ) {
 	$.get( url )
 		.done( function(data) {
 		
-			if( loading_fading_out ) {
-				loading_page_content = data;
+			if( g_loading_fading_out ) {
+				g_loading_page_content = data;
 			} else {
 				fadeIn( data );
 				
 			}
 		})
 		.fail( function() {
-			if( loading_fading_out ) {
-				loading_page_content = pageLoadFailedContent();
+			if( g_loading_fading_out ) {
+				g_loading_page_content = pageLoadFailedContent();
 			} else {
 				fadeIn( pageLoadFailedContent() );
 			}
@@ -306,18 +323,209 @@ $( function() {
 
 //-----------------------------------------------------------------------------
 $(document).bind('keydown', function(e) {
-	if( loading ) return false;
+/* DEBUG BYPASS
+	if( g_loading ) return false;
     if( e.which === 116 ) {
-		loadPage('content.php',500);
+		loadPage( 'content.php', 500 );
 		return false;
     }
     if( e.which === 82 && e.ctrlKey ) {
 		loadPage('content.php');
 		return false;
-    }
+    }*/
+	 if( e.which === 32 ) {
+		refreshComments();
+		}
 });
 //-----------------------------------------------------------------------------
 $(document).bind('mousedown', function(e) {
 
-	if( loading_fading_out ) return false;
+	if( g_loading_fading_out ) return false;
 });
+
+function interruptRefreshComments() {
+	
+}
+
+//-----------------------------------------------------------------------------
+function refreshComments() {
+ 
+	function DequeueNext() {
+		if( refreshCommentsQueue.queue( "rc" ).length == 0 ) {
+			g_refreshing_comments = false;
+			return;
+		}
+		
+		refreshCommentsQueue.dequeue( "rc" );
+	}
+	
+	function showCommentReply() {
+		// last function in queue string.
+		var rpi = $( '#replyinputbox' );
+		if( !rpi.hasClass( 'fade' ) ) {
+			setTimeout( function() {
+				if( !rpi.hasClass( 'fade' ) ) {
+					rpi.css( "opacity", 1 );
+				}
+			}, 500 );
+		}
+		DequeueNext();
+	}
+	
+	function cancelAutoRefreshComments() {
+		if( g_autorefresh_comments_handle != null ) {
+			clearTimeout(g_autorefresh_comments_handle);
+			g_autorefresh_comments_handle = null;
+		}
+	}
+
+	function setAutoRefreshComments() { 
+		cancelAutoRefreshComments();
+		g_autorefresh_comments_handle = setTimeout( refreshComments, 35*1000 );
+	}
+	
+	
+	function chainFadeComments( start, end ) {
+		if( end < start ) {
+			showCommentReply();
+			return;
+		}
+		
+		var id = start;
+		var func = function() {
+			
+			$( '#comment' + id ).css( "opacity", 1 );
+			id++;
+			if( id <= end ) {
+				setTimeout( func, 100 );
+			} else {
+				showCommentReply();
+				
+			}
+		}
+		setTimeout( func, 50 );
+	}
+
+	function startRefresh() {
+	
+		setAutoRefreshComments();
+	
+		$.get( "getcomments.php", 
+			{page: g_page, 
+			challenge: g_challenge, 
+			last: g_last_comment} ) 
+			
+		.done( function( data ) {
+
+			if( data != 'error' ) {
+				data = JSON.parse( data );
+				
+				var startcomment = g_num_comments;
+				
+				for( var i = 0; i < data.length; i++ ) {
+					
+					var entry = data[i];
+					
+					if( entry.id > g_last_comment ) {
+						g_last_comment = entry.id;
+					}
+					
+					if( g_topic_state == "live" ) {
+						var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content;
+						var selected = entry.vote === true ? " selected": "";
+						html += '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="voteCommentGood('+entry.id+')">';
+						if( entry.vote === true ) {
+							html += '<img src="star.png" alt="good"></div>';
+						} else {
+							html += '<img src="unstar.png" alt="good"></div>';
+						}
+						
+						selected = entry.vote === false ? " selected": "";
+						html += '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="voteCommentBad('+entry.id+')">';
+						if( entry.vote === false ) {
+							html += '<img src="bad.png" alt="bad"></div>';
+						} else {
+							html += '<img src="notbad.png" alt="bad"></div>';
+							
+						}
+						html += '</div> ';
+						
+						
+					} else {
+						var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content + '</div>&nbsp;';
+						
+					}
+					g_num_comments++;
+					
+					$( '#replylist' ).append( html );
+					
+				}
+				chainFadeComments( startcomment, g_num_comments-1 );
+			} else {
+			
+				DequeueNext();
+			}
+		})
+		.fail( function( data ) {
+			// try again later
+			DequeueNext();
+		});
+	}
+	refreshCommentsQueue.queue( "rc", startRefresh );
+	if( !g_refreshing_comments ) {
+		g_refreshing_comments = true;
+		refreshCommentsQueue.dequeue( "rc" );
+	}	
+	
+	// TODO refreshing page while refreshing comments.
+}
+
+
+function voteTopicGood() {
+	
+}
+
+function voteTopicBad() {
+	
+}
+
+function voteComment( id, upvote ) {
+	var vgood = $( '#votegood' + id );
+	var vbad = $( '#votebad' + id );
+	
+	if( upvote ) {
+		if( vgood.hasClass( 'selected' ) ) return; // already voted.
+	} else {
+		if( vbad.hasClass( 'selected' ) ) return; // already voted.
+	}
+	
+	if( upvote ) {
+		vgood.addClass( 'selected' );
+		vbad.removeClass( 'selected' );
+		vgood.html( '<img src="star.png">' );
+		vbad.html( '<img src="notbad.png">' );
+	} else {
+		vgood.removeClass( 'selected' );
+		vbad.addClass( 'selected' );
+		vgood.html( '<img src="unstar.png">' );
+		vbad.html( '<img src="bad.png">' );
+	}
+			!
+	$.post( 'commentvote.php', 
+		{ page: g_page, 
+		  challenge: g_challenge, 
+		  comment: id, 
+		  vote: upvote ? 'good':'cancer' } ) ; 
+	// ignore result
+	// not really a problem if a few of these votes get missed.
+	
+	
+}
+
+function voteCommentGood(id) {
+	voteComment( id, true );
+}
+
+function voteCommentBad(id) {
+	voteComment( id, false );
+}
