@@ -44,9 +44,9 @@ try {
 	$vote = $_POST['vote'];
 	$voteval = "";
 	if( $vote == "good" ) {
-		$voteval = "TRUE";
+		$voteval = "1";
 	}  else if( $vote == "cancer" ) {
-		$voteval = "FALSE";
+		$voteval = "0";
 	} else {
 		exit( 'error' );
 	}

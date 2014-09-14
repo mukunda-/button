@@ -137,7 +137,12 @@ function IsPageValid( $page, $challenge ) {
 		return false;
 	}
 	
-	if( 
+	if( $row['state'] == TopicStates::Live ) {
+		if( CheckTopicExpired( $page, $row['goods'], $row['bads'], $row['time'] ) ) {
+			return true;
+		}
+		
+	}
 	return true;
 }
 
@@ -151,13 +156,28 @@ function FinalizeTopic( $id ) {
 	$sql->safequery(
 			"UPDATE Topics SET state=".TopicStates::Old.
 			" WHERE state=".TopicStates::Live." AND id=$id" );
+	
 	if( $sql->affected_rows == 0 ) {
 		// the topic was already finalized
 		$sql->safequery( "UNLOCK TABLES" );
 		return;
 	}
 	
-	
+	// get total of comment votes and assign them to the 
+	// comment entries
+	$sql->safequery( "
+		 UPDATE Comments LEFT JOIN 
+		  (SELECT commentid, 
+				  SUM(vote) AS goods, 
+				  SUM(1-vote) AS bads 
+				  FROM CommentVotes GROUP BY commentid
+		  ) AS VoteTotals 
+		 ON Comments.id = VoteTotals.commentid 
+		 SET Comments.goods = IFNULL(VoteTotals.goods,0), 
+		     Comments.bads = IFNULL(VoteTotals.bads,0) 
+		 WHERE topic = $id" );
+		 
+	$sql->safequery( "UNLOCK TABLES" );
 }
 
 //-----------------------------------------------------------------------------
@@ -234,14 +254,14 @@ function GetNewPage() {
 	$choices = array();
 	
 	while( $row = $result->fetch_assoc() ) {
-		if( $row['state'] == $s_comp ) {
+		if( $row['state'] == TopicStates::Composing ) {
 			if( time() >= ($row['time'] + $GLOBALS['COMPOSE_TIMEOUT']) ) {
 				// delete timed-out composition.
 				// we double-check that it is still in composition mode.
 				$sql->safequery( "DELETE FROM Topics WHERE id=".$row['id']." AND state=$s_comp" );
 				continue;
 			}
-		} else if( $row['state'] == $s_live ) {
+		} else if( $row['state'] == TopicStates::Live ) {
 		
 			if( CheckTopicExpired( $row['id'], $row['goods'], 
 									$row['bads'], $row['time'] ) ) {
