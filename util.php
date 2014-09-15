@@ -198,17 +198,17 @@ function CheckTopicExpired2( $id, $goods, $bads, $time ) {
 	return FALSE;
 }
 
-function CheckTopicExpired( $id, $challenge  ) {
+function CheckTopicExpired( $id ) {
 	$sql = GetSQL();
 	$result =$sql->safequery( 
-		"SELECT state,goods,bads,time FROM Topics WHERE id=$id AND challenge=$challenge");
+		"SELECT state,goods,bads,time FROM Topics WHERE id=$id");
 	
 	$row = $result->fetch_row();
 	if( $row === FALSE ) {
 		throw new Exception( "Invalid page." );
 	}
-	if( $row[0] == TopicStates::Old ) return TRUE;
-	if( $row[0] == TopicStates::Deleted ) return TRUE;
+	if( $row[0] == TopicStates::Old ) return 2;
+	if( $row[0] == TopicStates::Deleted ) return 1;
 	if( $row[0] != TopicStates::Live ) {
 		throw new Exception( "Invalid page." );
 	}

@@ -10,8 +10,10 @@ var g_loading = false;
 var g_loading_fading_out = false;
 var g_loading_page_content = null;
 var g_compose_sending = false;
-var g_page = 0;
-var g_challenge = 0;
+var g_account_serial = 0; // the serial is used to
+// ignore actions when the user is actually on
+// a different page (most likely because they
+// opened the site in another tab)
 
 var g_last_comment = 0;
 var g_num_comments = 0;
@@ -19,7 +21,7 @@ var g_topic_state = "old";
 
 var g_topic_voted = false;
   
-var g_page_serial = 0; // used to catch outdated operations.
+//var g_page_serial = 0; // used to catch outdated operations.
 
 //-----------------------------------------------------------------------------
 // read element text with converted line breaks
@@ -52,7 +54,8 @@ function SubmitComposition() {
 	//$("#composition").removeClass('composing');
 	HideSubmit(); 
 			
-	$.post( "compose.php", { text: content, page: g_page, challenge: g_challenge } )
+	$.post( "compose.php", 
+		{ text: content, serial: g_account_serial } )
 		.done( function( data ) {
 			alert(data);
 			if( data == 'error' ) {
@@ -66,6 +69,8 @@ function SubmitComposition() {
 				LoadPage( 'error.php?emptycomposition' );
 			} else if( data == 'toolong' ) {
 				LoadPage( 'error.php?toolong' );
+			} else if( data == 'badserial' ) {
+				LoadPage( 'error.php?messedup' );
 			} else {
 				RefreshContent(); 
 			}
@@ -93,8 +98,7 @@ function SubmitComment() {
 	HideSubmit();
 			
 	$.post( "reply.php", { text: content, 
-	                       page: g_page, 
-						   challenge: g_challenge  } )
+	                       serial: g_account_serial } )
 						   
 		.done( function( data ) {
 			var reopeninput = false;
@@ -102,7 +106,9 @@ function SubmitComment() {
 			if( data == 'error' ) {
 				reopeninput = true;
 				alert( 'couldn\'t post comment.' );
-				
+			} else if( data == 'badserial' ) {
+				alert( 'something messed up.' );
+				RefreshContent();
 			} else if( data == 'expired' ) {
 				
 				alert( 'too late.' );
@@ -121,6 +127,7 @@ function SubmitComment() {
 				
 				$( "#replyinputbox" ).addClass( 'fade' ); 
 				$( "#replyinputbox" ).css( 'opacity', 0 ); 
+				$( "#replyinputbox" ).css( 'cursor', 'default' ); 
 				setTimeout( LiveRefresh.Refresh, 500 );
 			}
 			
@@ -155,10 +162,8 @@ function ShowSubmit( parent ) {
 		submit.css( 'opacity', 1.0 );
 		submit.css( 'cursor', 'pointer' );
 	} else {
+		HideSubmit();
 		
-		submit.attr( 'disabled', 'disabled' );
-		submit.css( 'opacity', 0.0 );
-		submit.css( 'cursor', 'default' );
 	}
 }
 
@@ -225,14 +230,13 @@ function AdjustSize() {
 //-----------------------------------------------------------------------------
 function PageLoadFailedContent() {
 	return '<div class="topic nothing" id="topic">'+
-			   'the page failed to load.'+
-		   '</div>';
+			   'something messed up.'+
+		   '</div><!-- (the page failed to load.) -->';
 }
 
 //-----------------------------------------------------------------------------
 function FadeIn( content ) {	
-
-	g_page_serial++;
+ 
 	output = $('#content');
 	$('#content').html( content );
 	
@@ -350,6 +354,7 @@ var LiveRefresh = new function() {
 			}, 500 );
 		}
 		DequeueNext();
+		return;
 	}
 		
 	function ChainFadeComments( start, end ) {
@@ -378,6 +383,7 @@ var LiveRefresh = new function() {
 		if( CheckSerial() ) return; 
 		if( data == 'error' ) {
 			DequeueNext();
+			return;
 		} else if( data == 'expired' ) {
 			m_queue = [];
 			m_refreshing = false;
@@ -438,21 +444,25 @@ var LiveRefresh = new function() {
 		
 		if( g_topic_state == 'live' ) {
 			SetAutoRefresh();
+		} else if( g_topic_state != 'old' ) {
+			DequeueNext(); // bad state
+			return;
 		}
+		
 	
 		$.get( "liverefresh.php", 
-			{page: g_page, 
-			challenge: g_challenge, 
+			{serial: g_account_serial,
 			last: g_last_comment} ) 
 		.done( OnAjaxDone )
 		.fail( function() {
 			// try again later
 			DequeueNext();
+			return;
 		});
 	}
 	
 	function CheckSerial() {
-		if( m_serial != g_page_serial ) {
+		if( m_serial != g_account_serial ) {
 			DequeueNext();
 			return true;
 		}
@@ -463,7 +473,7 @@ var LiveRefresh = new function() {
 		if( g_topic_state != "live" &&
 			g_topic_state != 'old' ) return;
 		
-		m_queue.push( g_page_serial );
+		m_queue.push( g_account_serial );
 		if( !m_refreshing ) {
 			DequeueNext();
 		}
@@ -488,8 +498,7 @@ function VoteTopic( upvote ) {
 	vbad.removeClass( "clickable" );
 	
 	$.post( 'topicvote.php', 
-		{ page: g_page, 
-		  challenge: g_challenge,  
+		{ serial: g_account_serial,  
 		  vote: upvote ? 'good':'cancer' } )
 		.done( function( data ) {
 		  alert(data);
@@ -548,13 +557,11 @@ function VoteComment( id, upvote ) {
 	}
 	
 	$.post( 'commentvote.php', 
-		{ page: g_page, 
-		  challenge: g_challenge, 
+		{ serial: g_account_serial,
 		  comment: id, 
 		  vote: upvote ? 'good':'cancer' } ) ; 
 	// ignore result
 	// not really a problem if a few of these votes get missed.
-	
 	
 }
 
@@ -620,10 +627,14 @@ $(document).bind('keydown', function(e) {
 
 window.Button = window.Button || {};
 
+window.Button.SetSerial = function( serial ) {
+	g_account_serial = serial;
+}
+/*
 window.Button.SetPage = function( page, challenge ) {
 	g_page = page;
 	g_challenge = challenge;
-}
+}*/
 
 window.Button.SetTopicState = function( state ) {
 	g_topic_state = state;

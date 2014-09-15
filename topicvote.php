@@ -1,9 +1,7 @@
 <?php
 
-
 // topicvote.php POST
-//  page = topic id
-//  challenge = challenge code
+//  serial = account serial
 //  vote = "good" or "cancer"
 
 // returns:
@@ -19,71 +17,61 @@ require_once "util.php";
 
 //-----------------------------------------------------------------------------
 try {
-	if( !isset( $_POST['page'] ) ||
-		!isset( $_POST['challenge'] ) || 
-		!isset( $_POST['vote'] ) ||
-			!isset($_COOKIE['challenge']) || 
-			!isset($_COOKIE['page']) ) {
-		
-		exit( 'error' );
-	}
-	
-	$challenge = ReadCookieInt( 'challenge' );
-	$page = ReadCookieInt( 'page' );
-	if( $challenge != $_POST['challenge'] ||
-		$page != $_POST['page'] ) {
-		
+	if( !isset( $_POST['serial'] ) {
 		exit( 'error' );
 	}
 	
 	$voteval = GetVoteValue( $_POST['vote'] );
 	if( $voteval === FALSE ) exit( 'error' );
 	
+	$g_account = LogIn();
+	if( $g_account->serial != serial ) {
+		exit( 'wrongpage' );
+	}
 	
-	if( CheckTopicExpired( $page, $challenge ) ) {
+	if( CheckTopicExpired( $g_account->page ) ) {
 		exit( 'expired' ); // topic has expired.
 	}
 	
-	$xip = GetIPHex();
-	
 	$sql = GetSQL();
 	$sql->safequery( 
-		"LOCK TABLES Topics WRITE, TopicVotes WRITE" );
+		'LOCK TABLES Topics WRITE, TopicVotes WRITE' );
 	$result = $sql->safequery( 
-		"SELECT state FROM Topics WHERE id=$page AND challenge=$challenge" );
+		'SELECT state FROM Topics WHERE id='.$g_account->page );
 	
 	if( $result->num_rows == 0 ) {
-		$sql->safequery( "UNLOCK TABLES" );
-		exit( 'error' ); // topic is closed or invalid.
+		$sql->safequery( 'UNLOCK TABLES' );
+		exit( 'error' ); // topic is invalid.
 	}
 	
 	$row = $result->fetch_row();
 	if( $row[0] == TopicStates::Old ) {
-		$sql->safequery( "UNLOCK TABLES" );
-		exit( 'expired' ); // topic is closed or invalid.
+		$sql->safequery( 'UNLOCK TABLES' );
+		exit( 'expired' ); // topic is closed.
 	}
+	
 	if( $row[0] != TopicStates::Live ) {
-		$sql->safequery( "UNLOCK TABLES" );
-		exit( 'error' ); // topic is closed or invalid.
+		$sql->safequery( 'UNLOCK TABLES' );
+		exit( 'error' ); // topic is invalid.
 	}
 	
 	$sql->safequery( 
-		"INSERT IGNORE INTO TopicVotes ( topicid, ip, vote ) VALUES
-		( $page, x'$xip', $voteval )" );
+		'INSERT IGNORE INTO TopicVotes ( topicid, account, vote ) 
+		VALUES ( '.$g_account->page.', '.$g_account->id.", $voteval )" );
 		
 	if( $sql->affected_rows == 0 ) {
-		$sql->safequery( "UNLOCK TABLES" );
+		$sql->safequery( 'UNLOCK TABLES' );
 		exit( 'error' ); // user already voted.
 	}
 	
 	if( $voteval == '1' ) {
 		$sql->safequery( 
-			"UPDATE Topics SET goods=goods+1 WHERE id=$page" );
+			'UPDATE Topics SET goods=goods+1 WHERE id='.$g_account->page );
 	} else if( $voteval == '0' ) {
 		$sql->safequery( 
-			"UPDATE Topics SET bads=bads+1 WHERE id=$page" );
+			'UPDATE Topics SET bads=bads+1 WHERE id='.$g_account->page );
 	}
-	$sql->safequery( "UNLOCK TABLES" );
+	$sql->safequery( 'UNLOCK TABLES' );
 	
 	if( $voteval == '1' ) {
 		exit( 'good' );

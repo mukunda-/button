@@ -7,26 +7,24 @@ require_once "util.php";
 $MAXCHARS = 220;
 $MAXLINES = 8;
 
+// reply.php POST { text: reply text, serial: account serial }
+
 //-----------------------------------------------------------------------------
 try {
 	
 	if( !isset( $_POST['text'] ) ||
-		!isset( $_POST['challenge'] ) ||
-		!isset( $_POST['page'] ) ||
-			!isset($_COOKIE['challenge']) || 
-			!isset($_COOKIE['page']) ) {
+			!isset( $_POST['serial'] ) {
 		
 		exit( 'error' );
 	}
 	
-	$challenge = ReadCookieInt( 'challenge' );
-	$page = ReadCookieInt( 'page' );
-	if( $challenge != $_POST['challenge'] ||
-		$page != $_POST['page'] ) {
+	$g_account = LogIn();
+	
+	if( $g_account->serial != $_POST['serial'] ) {
 		exit( 'wrongpage' );
 	}
 	
-	if( CheckTopicExpired( $page, $challenge ) ) {
+	if( CheckTopicExpired( $g_account->page ) ) {
 		exit( 'expired' );
 	}
 	
@@ -42,37 +40,39 @@ try {
 		exit( 'toolong' );
 	}
 	
-	
 	$sql = GetSQL();
 	$s_live = TopicStates::Live;
-	$sql->safequery( "LOCK TABLES Topics READ, Comments WRITE" );
+	$sql->safequery( 'LOCK TABLES Topics READ, Comments WRITE' );
 	$result = $sql->safequery( 
-		"SELECT state FROM Topics ".
-		" WHERE id=$page AND challenge=$challenge" );
-	
+		'SELECT state FROM Topics
+		WHERE id='.$g_account->page );
+		
 	if( $result->num_rows == 0 ) {
-		$sql->safequery( "UNLOCK TABLES" );
+		$sql->safequery( 'UNLOCK TABLES' );
 		exit( 'error' );
 		
 	}
 	
 	$row = $result->fetch_row();
-	if( $row[0] == TopicStates::Old || $row[0] == TopicStates::Deleted ) {
-		$sql->safequery( "UNLOCK TABLES" );
-		exit( 'toolate' );
+	if( $row[0] == TopicStates::Old || 
+			$row[0] == TopicStates::Deleted ) {
+		
+		$sql->safequery( 'UNLOCK TABLES' );
+		exit( 'expired' );
 	}
 	 
-	$xip = GetIPHex();
 	$text = $sql->real_escape_string( $text );
-	$sql->safequery( "INSERT INTO Comments (topic,ip,goods,bads,time,content) ".
-					 " VALUES ($page,x'$xip',0,0,".time().",'$text')" );
+	$sql->safequery( 
+		'INSERT INTO Comments (topic,account,goods,bads,time,content) 
+		VALUES ('.$g_account->page.','.$g_account->id.',0,0,'.time().",'$text')" );
 				
 	if( $sql->affected_rows == 0 ) {
-		$sql->safequery( "UNLOCK TABLES" );
+		// not sure how the above would error..?
+		$sql->safequery( 'UNLOCK TABLES' );
 		exit( 'error' );
 	}
 	
-	$sql->safequery( "UNLOCK TABLES" );
+	$sql->safequery( 'UNLOCK TABLES' );
 	
 	exit( 'okay.' );
 	

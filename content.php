@@ -65,11 +65,11 @@ class Topic {
 
 
 //-----------------------------------------------------------------------------
-function ChangeAccountNextPage( $account, $page ) {
+function SaveAccount( $account, $page, $serial ) {
 	$sql = GetSQL(); 
 	$sql->safequery( 
-		'UPDATE Accounts SET page='.$g_account->page.', 
-		serial='.$g_account->serial.' WHERE id='.$g_account->id );
+		'UPDATE Accounts SET page='.$page.', 
+		serial='.$serial.' WHERE id='.$g_account->id );
 }
 
 //-----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ function IsPageValid( $account ) {
 	}
 	// TODO make sure they get a new topic on the next refresh.
 	if( $row['state'] == TopicStates::Deleted ) {
-		ChangeAccountNextPage( $account, 0 );
+		SaveAccount( $account, 0, $account->serial+1 );
 		return true;
 	}
 	if( $row['state'] == TopicStates::Composing && time() >= ($row['time'] + $GLOBALS['COMPOSE_TIMEOUT'] ) ) {
@@ -107,7 +107,7 @@ function IsPageValid( $account ) {
 		if( $result ) {
 			if( $result == 1 ) {
 				// deleted. choose new topic on next refresh.
-				ChangeAccountNextPage( $account, 0 );
+				SaveAccount( $account, 0, $account->serial+1 );
 			}
 			return true;
 		}
@@ -141,11 +141,8 @@ function GetNewPage() {
 			$row = $result->fetch_row();
 			$g_account->page = $row[0];
 			$g_account->serial++;
-			$sql->safequery( 
-				'UPDATE Accounts SET page='.$g_account->page.', 
-				serial='.$g_account->serial.' WHERE id='.$g_account->id );
+			SaveAccount( $g_account, $g_account->page, $g_account->serial );
 			
-			$g_page = $row[0];
 			return;
 		}
 	}
@@ -194,9 +191,7 @@ function GetNewPage() {
 	
 	$g_account->page = $choice['id'];
 	$g_account->serial++;
-	$sql->safequery( 
-		'UPDATE Accounts SET page='.$g_account->page.', 
-		serial='.$g_account->serial.' WHERE id='.$g_account->id ); 
+	SaveAccount( $g_account, $g_account->page, $g_account->serial );
 }
 
 $g_account = LogIn();
@@ -205,7 +200,7 @@ if( !IsPageValid( $g_account ) ) {
 	$g_account->page = 0;
 }
 
-if( $g_page == 0 ) {
+if( $g_account->page == 0 ) {
 	// try to find a new page
 	
 	GetNewPage();
@@ -214,15 +209,15 @@ if( $g_page == 0 ) {
 }
 
 function ShowTopic() {
-	global $g_page, $g_challenge;
+	global $g_account;
 	
 	echo '<script>';
-	echo "Button.SetPage( $g_page, $g_challenge );";
+	echo 'Button.SetSerial( '.$g_account->serial.' );';
 	echo 'Button.SetTopicState("none");';
 	echo '</script>';
 	
 	
-	if( $g_page == 0 ) {
+	if( $g_account->page == 0 ) {
 		echo '
 			<div class="topic nothing" id="topic">
 				nothing to discuss. check again later.
@@ -234,7 +229,7 @@ function ShowTopic() {
 	if( !$topic->valid ) {
 		echo '
 			<div class="topic nothing" id="topic">
-				nothing to discuss. try again later.
+				nothing to discuss. check again later.
 			</div>';
 		return false;
 	}
