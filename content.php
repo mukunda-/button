@@ -59,7 +59,7 @@ class Topic {
 		$this->content = $row['content'];
 		$this->goods = $row['goods'];
 		$this->bads = $row['bads'];
-		$this->vote = $row['vote'];
+		$this->vote = is_null($row['vote']) ? null : ($row['vote'] == 1 ? true:false);
 		$this->time = $row['time'];
 		$this->valid = true;
 		
@@ -104,12 +104,21 @@ function IsPageValid( $page, $challenge ) {
 	
 	global $apath;
 	
+	$xip = GetIPHex();
+	
 	$sql = GetSQL();
 	$result =$sql->safequery( 
-		"SELECT state,time, goods,bads FROM Topics WHERE id=$page AND challenge=$challenge");
+		"SELECT state,time, goods,bads,vote FROM Topics 
+		LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip=x'$xip')
+		WHERE id=$page AND challenge=$challenge" );
 	
 	$row = $result->fetch_assoc();
 	if( $row === FALSE ) return false;
+	
+	if( (!is_null( $row['vote'] )) && $row['vote'] == 0 ) {
+		// downvoted post, don't show.
+		return false;
+	}
 	// TODO make sure they get a new topic on the next refresh.
 	if( $row['state'] == TopicStates::Deleted ) {
 		setcookie( "page", 0, 0, $apath );
@@ -183,20 +192,24 @@ function GetNewPage() {
 			}
 		} else if( $row['state'] == TopicStates::Live ) {
 			
-			if( CheckTopicExpired( $row['id'], $row['goods'], 
+
+			if( CheckTopicExpired2( $row['id'], $row['goods'], 
 									$row['bads'], $row['time'] ) ) {
 				
 				continue;
 			}
 			
 			
-			
-			if( $row['vote'] !== FALSE ) {
-				$choices[] = array( 
-						"id" =>$row['id'], 
-						"ch" => $row['challenge'] );
-				
+			// skip downvoted topics.
+			if( (!is_null( $row['vote'] )) && $row['vote'] == 0 ) {
+				continue;
 			}
+			
+			
+			$choices[] = array( 
+					"id" =>$row['id'], 
+					"ch" => $row['challenge'] );
+			
 		}
 	}
 	 
@@ -231,6 +244,7 @@ function ShowTopic() {
 	
 	echo '<script>';
 	echo "Button.SetPage( $g_page, $g_challenge );";
+	echo 'Button.SetTopicState("none");';
 	echo '</script>';
 	
 	
@@ -291,8 +305,8 @@ function ShowTopic() {
 			echo '<div class="good" id="goodbutton"><img src="unstar.png" alt="good" title="good"></div>';
 			echo '<div class="bad" id="badbutton"><img src="bad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
 		} else {
-			echo '<div class="good" id="goodbutton" onclick="voteTopicGood()"><img src="unstar.png" alt="good" title="good"></div>';
-			echo '<div class="bad" id="badbutton" onclick="voteTopicBad()"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
+			echo '<div class="good clickable" id="goodbutton" onclick="Button.VoteTopicGood()"><img src="unstar.png" alt="good" title="good"></div>';
+			echo '<div class="bad clickable" id="badbutton" onclick="Button.VoteTopicBad()"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
 		}
 		 
 		

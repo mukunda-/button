@@ -16,6 +16,8 @@ var g_challenge = 0;
 var g_last_comment = 0;
 var g_num_comments = 0;
 var g_topic_state = "old";
+
+var g_topic_voted = false;
   
 var g_page_serial = 0; // used to catch outdated operations.
 
@@ -238,7 +240,7 @@ function FadeIn( content ) {
 	g_compose_sending = false;
 	g_last_comment = 0;
 	g_num_replies = 0;
-	
+	g_topic_voted = false;
 	
 	AdjustSize();
 	output.css( 'opacity', 1 ); // fade in
@@ -259,6 +261,9 @@ function LoadPage( url, delay ) {
 	// negative delay = -delay
 	
 	g_loading = true;
+	
+	LiveRefresh.CancelAutoRefresh();
+	
 	output = $('#content');
 	output.css( 'opacity', 0 ); // fade out
 	
@@ -371,7 +376,17 @@ var LiveRefresh = new function() {
 	
 	function OnAjaxDone( data ) {
 		if( CheckSerial() ) return; 
-		if( data != 'error' ) {
+		if( data == 'error' ) {
+			DequeueNext();
+		} else if( data == 'expired' ) {
+			m_queue = [];
+			m_refreshing = false;
+			RefreshContent();
+		} else if( data == 'wrongpage' ) {
+			m_queue = [];
+			m_refreshing = false;
+			RefreshContent();
+		} else {
 			data = JSON.parse( data );
 			
 			var startcomment = g_num_comments;
@@ -387,19 +402,19 @@ var LiveRefresh = new function() {
 				if( g_topic_state == "live" ) {
 					var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content;
 					var selected = entry.vote === true ? " selected": "";
-					html += '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="VoteCommentGood('+entry.id+')">';
+					html += '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="Button.VoteCommentGood('+entry.id+')">';
 					if( entry.vote === true ) {
-						html += '<img src="star.png" alt="good"></div>';
+						html += '<img src="star.png" alt="good" title="good"></div>';
 					} else {
-						html += '<img src="unstar.png" alt="good"></div>';
+						html += '<img src="unstar.png" alt="good" title="good"></div>';
 					}
 					
 					selected = entry.vote === false ? " selected": "";
-					html += '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="VoteCommentBad('+entry.id+')">';
+					html += '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="Button.VoteCommentBad('+entry.id+')">';
 					if( entry.vote === false ) {
-						html += '<img src="bad.png" alt="bad"></div>';
+						html += '<img src="bad.png" alt="bad" title="bad"></div>';
 					} else {
-						html += '<img src="notbad.png" alt="bad"></div>';
+						html += '<img src="notbad.png" alt="bad" title="bad"></div>';
 						
 					}
 					html += '</div> ';
@@ -415,9 +430,6 @@ var LiveRefresh = new function() {
 				
 			}
 			ChainFadeComments( startcomment, g_num_comments-1 );
-		} else {
-		
-			DequeueNext();
 		}
 	}
 	
@@ -446,6 +458,7 @@ var LiveRefresh = new function() {
 	}
 	
 	this.Refresh = function() {
+		if( g_topic_state != "live" ) return;
 		
 		m_queue.push( g_page_serial );
 		if( !m_refreshing ) {
@@ -453,14 +466,60 @@ var LiveRefresh = new function() {
 		}
 	}
 	 
+	this.CancelAutoRefresh = CancelAutoRefresh;
+}
+
+function VoteTopic( upvote ) {
+	if( g_topic_voted ) return;
+	g_topic_voted = true;
+	
+	var vgood = $("#goodbutton");
+	var vbad = $("#badbutton");
+	
+	if( upvote ) {
+		vgood.html( '<img src="star.png" alt="good" title="good">' );
+	} else {
+		vbad.html( '<img src="bad.png" alt="bad" title="bad">' );
+	}
+	vgood.removeClass( "clickable" );
+	vbad.removeClass( "clickable" );
+	
+	$.post( 'topicvote.php', 
+		{ page: g_page, 
+		  challenge: g_challenge,  
+		  vote: upvote ? 'good':'cancer' } )
+		.done( function( data ) {
+		  alert(data);
+			if( data == 'error' ) {
+				RefreshContent(); 
+			} else if( data == 'good' ) {
+				// do nothing.
+			} else if( data == 'cancer' ) {
+				// will get new topic.
+				RefreshContent(); 
+			} else if( data == 'expired' ) {
+				RefreshContent(); 
+			}
+		})
+		.fail( function(  ) {
+		
+		  alert('fail');
+			g_topic_voted = false;
+			vgood.html( '<img src="unstar.png" alt="good" title="good">' );
+			vbad.html( '<img src="notbad.png" alt="bad" title="bad">' );
+			
+			vgood.addClass( "clickable" );
+			vbad.addClass( "clickable" );
+			
+		});
 }
 
 function VoteTopicGood() {
-	
+	VoteTopic( true );
 }
 
 function VoteTopicBad() {
-	
+	VoteTopic( false );
 }
 
 function VoteComment( id, upvote ) {
@@ -576,6 +635,10 @@ window.Button.ReplyKeyPressed       = ReplyKeyPressed;
 window.Button.DoLiveRefresh         = LiveRefresh.Refresh;
 window.Button.SubmitComposition     = SubmitComposition;
 window.Button.SubmitComment         = SubmitComment;
+window.Button.VoteCommentGood       = VoteCommentGood;
+window.Button.VoteCommentBad        = VoteCommentBad;
+window.Button.VoteTopicGood         = VoteTopicGood;
+window.Button.VoteTopicBad          = VoteTopicBad;
 
 })()
 

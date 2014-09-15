@@ -62,7 +62,7 @@ body {
 	top: 4px;
 	width: 32px;
 	height: 32px; 
-	cursor: pointer;
+	font-size:6px;
 }
 .topic .bad {
 	position: absolute;
@@ -70,8 +70,13 @@ body {
 	top: 4px;
 	width: 32px;
 	height: 32px; 
-	cursor: pointer;
+	font-size:6px;
 }
+
+.clickable {
+	cursor:pointer;
+}
+
 .topic .good:hover {
 	
 }

@@ -37,8 +37,13 @@ try {
 	if( $challenge != $_GET['challenge'] ||
 		$page != $_GET['page'] ) {
 		
-		exit( 'error' );
+		exit( 'wrongpage' );
 	}
+	
+	if( CheckTopicExpired( $page, $challenge ) ) {
+		exit( 'expired' );
+	}
+	
 	$sql = GetSQL();
 	
 	$result = $sql->safequery( "SELECT state FROM Topics WHERE id=$page" );

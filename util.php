@@ -92,19 +92,36 @@ function CheckTopicExpired2( $id, $goods, $bads, $time ) {
 		} else {
 			FinalizeTopic( $id );
 		}
-		return true;
+		return TRUE;
 	}
-	return false;
+	return FALSE;
 }
 
-function CheckTopicExpired( $id, $challenge ) {
+function CheckTopicExpired( $id, $challenge  ) {
 	$sql = GetSQL();
 	$result =$sql->safequery( 
-		"SELECT goods,bads,time FROM Topics WHERE id=$id AND challenge=$challenge");
+		"SELECT state,goods,bads,time FROM Topics WHERE id=$id AND challenge=$challenge");
 	
 	$row = $result->fetch_row();
-	if( $row === FALSE ) return false;
-	return CheckTopicExpired2( $id, $row[0], $row[1], $row[2] );
+	if( $row === FALSE ) {
+		throw new Exception( "Invalid page." );
+	}
+	if( $row[0] == TopicStates::Old ) return TRUE;
+	if( $row[0] == TopicStates::Deleted ) return TRUE;
+	if( $row[0] != TopicStates::Live ) {
+		throw new Exception( "Invalid page." );
+	}
+	return CheckTopicExpired2( $id, $row[1], $row[2], $row[3] );
+}
+
+function GetVoteValue( $source ) {
+	if( $source == "good" ) {
+		return "1";
+	}  else if( $source == "cancer" ) {
+		return "0";
+	} else {
+		return FALSE;
+	}
 }
 
 ?>

@@ -34,16 +34,9 @@ try {
 	$comment = intval( $_POST['comment'] );
 	if( $comment == 0 ) exit( "error" );
 	
-	$vote = $_POST['vote'];
-	$voteval = "";
-	if( $vote == "good" ) {
-		$voteval = "1";
-	}  else if( $vote == "cancer" ) {
-		$voteval = "0";
-	} else {
-		exit( 'error' );
-	}
-	
+	$voteval = GetVoteValue( $_POST['vote'] );
+	if( $voteval === FALSE ) exit( 'error' );
+	 
 	$sql = GetSQL();
 	$sql->safequery( "LOCK TABLES Topics READ, Comments READ, CommentVotes WRITE" );
 	$result = $sql->safequery( 
@@ -54,7 +47,7 @@ try {
 		$sql->safequery( "UNLOCK TABLES" );
 		exit( 'error' ); // topic is closed or invalid.
 	}
-	// slight discrepancy here regarding 
+	
 	$xip = GetIPHex();
 	
 	$result = $sql->safequery( "SELECT 1 FROM Comments WHERE id=$comment AND topic=$page" );

@@ -25,6 +25,11 @@ try {
 		$page != $_POST['page'] ) {
 		exit( 'wrongpage' );
 	}
+	
+	if( CheckTopicExpired( $page, $challenge ) ) {
+		exit( 'expired' );
+	}
+	
 	// sanitize text: 
 	$text = $_POST['text'];
 	$text = str_replace( '[[br]]', "\n", $text );
@@ -37,9 +42,6 @@ try {
 		exit( 'toolong' );
 	}
 	
-	if( CheckTopicExpired( $page, $challenge ) ) {
-		exit( 'expired' );
-	}
 	
 	$sql = GetSQL();
 	$s_live = TopicStates::Live;
