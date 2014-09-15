@@ -12,4 +12,7 @@ $COMPOSE_TIMEOUT = 60*5+4; // number of seconds a composition
 $BURY_TIME = 120;//60*5;
 
 $OLD_TIME = 60*30;
+
+$ACCOUNTS_PER_IP = 1;
+
  ?>

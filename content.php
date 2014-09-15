@@ -28,89 +28,60 @@ class Comment {
 //-----------------------------------------------------------------------------
 class Topic {
 	public $id;
-	public $ip;
+	public $accountid;
 	public $content = "";
 	public $state;
 	//public $comments = array();
 	public $goods;
 	public $bads;
-	public $vote; // the vote for this ip, TRUE, FALSE, or NULL
+	public $vote; // the vote for this account, TRUE, FALSE, or NULL
 	public $time;
 	public $valid;
 	
-	public function __construct( $id, $xip, $challenge ) {
-		$this->id = $id;
-		$this->ip = $xip;
+	public function __construct( $id, $account ) {
+		$this->id = $id; 
 		
 		$this->valid = false;
 		
 		$sql = GetSQL();
-		$result = $sql->safequery( 
-			"SELECT state, challenge, goods, bads, time, content, vote FROM Topics ".
-			" LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip=x'$xip') ".
-			" WHERE id=$id" );
+		$result = $sql->safequery(
+			"SELECT account, state, goods, bads, time, content, vote FROM Topics 
+			LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.account=".$account->id.") 
+			WHERE id=$id" );
 		
 		$row = $result->fetch_assoc();
-		if( $row === FALSE ) return;
-		if( $challenge != $row['challenge'] ) return;
+		if( $row === FALSE ) return; 
 		$state = $row['state'];
 		$this->state = $state;
-		
+		$this->accountid = $row['account'];
 		$this->content = $row['content'];
 		$this->goods = $row['goods'];
 		$this->bads = $row['bads'];
-		$this->vote = is_null($row['vote']) ? null : ($row['vote'] == 1 ? true:false);
+		$this->vote = is_null($row['vote']) ? null : ($row['vote'] == 1 ? TRUE:FALSE);
 		$this->time = $row['time'];
 		$this->valid = true;
-		
-		if( $state == TopicStates::Deleted   || 
-			$state == TopicStates::Composing ) {
-			
-			return;
-		}
-		
-		// get comments
-		/*
-		$result = $sql->safequery( 
-			"SELECT goods, bads, time, content, vote FROM Comments ".
-			" LEFT JOIN CommentVotes ON (commentid=id AND CommentVotes.ip=x'$xip') ".
-			" WHERE topic=$id" );
-			
-		$this->comments = array();
-			
-		while( $row = $result->fetch_assoc() ) {
-			$this->comments[] = new Comment( $row );
-		}
-		
-		if( $state == TopicStates::Old ) {
-			// sort comments by score
-			usort( $this->comments, ScoreCmp );
-		} else if( $state == TopicStates::Live ) {
-			// sort comments randomly
-			shuffle( $this->comments );
-		}*/
 	}
 }
 
-// page is the topic they are on
-$g_page = ReadCookieInt('page');
-// challenge is used to verify authority to view a topic
-$g_challenge = ReadCookieInt('challenge');
-//echo "challenge=$g_challenge<br>";
 
 //-----------------------------------------------------------------------------
-function IsPageValid( $page, $challenge ) {
-	if( $page == 0 ) return false;
+function ChangeAccountNextPage( $account, $page ) {
+	$sql = GetSQL(); 
+	$sql->safequery( 
+		'UPDATE Accounts SET page='.$g_account->page.', 
+		serial='.$g_account->serial.' WHERE id='.$g_account->id );
+}
+
+//-----------------------------------------------------------------------------
+function IsPageValid( $account ) {
+	if( $account->page == 0 ) return false;
 	
 	global $apath;
-	
-	$xip = GetIPHex();
-	
 	$sql = GetSQL();
 	$result =$sql->safequery( 
-		"SELECT state,time, goods,bads,vote FROM Topics 
-		LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip=x'$xip')
-		WHERE id=$page AND challenge=$challenge" );
+		'SELECT state,time,goods,bads,vote FROM Topics 
+		LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.account='.$account->id.')
+		WHERE id='.$account->page );
 	
 	$row = $result->fetch_assoc();
 	if( $row === FALSE ) return false;
@@ -121,7 +92,7 @@ function IsPageValid( $page, $challenge ) {
 	}
 	// TODO make sure they get a new topic on the next refresh.
 	if( $row['state'] == TopicStates::Deleted ) {
-		setcookie( "page", 0, 0, $apath );
+		ChangeAccountNextPage( $account, 0 );
 		return true;
 	}
 	if( $row['state'] == TopicStates::Composing && time() >= ($row['time'] + $GLOBALS['COMPOSE_TIMEOUT'] ) ) {
@@ -132,12 +103,14 @@ function IsPageValid( $page, $challenge ) {
 	}
 	
 	if( $row['state'] == TopicStates::Live ) {
-		if( CheckTopicExpired2( $page, $row['goods'], $row['bads'], $row['time'] ) ) {
-			
-			setcookie( "page", 0, 0, $apath );
+		$result = CheckTopicExpired2( $page, $row['goods'], $row['bads'], $row['time'] );
+		if( $result ) {
+			if( $result == 1 ) {
+				// deleted. choose new topic on next refresh.
+				ChangeAccountNextPage( $account, 0 );
+			}
 			return true;
 		}
-		
 	}
 	return true;
 }
@@ -145,36 +118,34 @@ function IsPageValid( $page, $challenge ) {
 
 //-----------------------------------------------------------------------------
 function GetNewPage() {
-	global $SLOTS, $g_page, $g_challenge, $apath;
+	global $SLOTS, $g_account, $apath;
 	
 	$sql = GetSQL();
-	$s_live = TopicStates::Live;
-	$s_comp = TopicStates::Composing;
-	$result = $sql->safequery( "LOCK TABLES Topics WRITE,  TopicVotes READ" );
-	
-	$xip = GetIPHex();
-	
+	$result = $sql->safequery( "LOCK TABLES Topics WRITE, TopicVotes READ" );
+	 
 	$result = $sql->safequery( 
-		"SELECT id,challenge,state,time,vote,goods,bads FROM Topics ".
-		" LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip=x'$xip')".
-		" WHERE (state=$s_live OR state=$s_comp) LIMIT $SLOTS");
+		'SELECT id,state,time,vote,goods,bads FROM Topics
+		LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip='.$g_account->id.')
+		WHERE (state='.TopicStates::Live.' OR state='.TopicStates::Composing.') LIMIT '.$SLOTS );
 	
 	if( $result->num_rows < $SLOTS ) {
 		// chance to make a new 
 		if( mt_rand( 0, $SLOTS-1 ) >= $result->num_rows ) {
-			// start new composition
-			//echo 'new composition<br>';
-			$g_challenge = (int)mt_rand();
+			// start new composition 
 			$sql->safequery( 
-				"INSERT INTO Topics ( ip,state,challenge,goods,bads,time ) VALUES 
-				( x'$xip', $s_comp, $g_challenge, 0, 0, ".time().")" );
+				'INSERT INTO Topics ( account,state,goods,bads,time ) VALUES 
+				( '.$account->id.', '.TopicStates::Composing.', 0, 0, '.time().')' );
 	
-			$sql->safequery( "UNLOCK TABLES" );
-			$result = $sql->safequery( "SELECT LAST_INSERT_ID()" );
+			$sql->safequery( 'UNLOCK TABLES' );
+			$result = $sql->safequery( 'SELECT LAST_INSERT_ID()' );
 			$row = $result->fetch_row();
+			$g_account->page = $row[0];
+			$g_account->serial++;
+			$sql->safequery( 
+				'UPDATE Accounts SET page='.$g_account->page.', 
+				serial='.$g_account->serial.' WHERE id='.$g_account->id );
+			
 			$g_page = $row[0];
-			setcookie( "page", $g_page, time() + 60*60*30, $apath );
-			setcookie( "challenge", $g_challenge, time() + 60*60*30, $apath );
 			return;
 		}
 	}
@@ -212,7 +183,7 @@ function GetNewPage() {
 			
 		}
 	}
-	 
+	
 	if( empty( $choices ) ) { 
 		$g_page = 0;
 		setcookie( "page", 0, 0, $GLOBALS['apath'] );
@@ -220,14 +191,18 @@ function GetNewPage() {
 	}
 	
 	$choice = $choices[mt_rand( 0, count($choices)-1 )];
-	$g_page = $choice['id'];
-	$g_challenge = $choice['ch'];
-	setcookie( "page", $g_page, time() + 60*60*30, $apath );
-	setcookie( "challenge", $g_challenge, time() + 60*60*30, $apath );
+	
+	$g_account->page = $choice['id'];
+	$g_account->serial++;
+	$sql->safequery( 
+		'UPDATE Accounts SET page='.$g_account->page.', 
+		serial='.$g_account->serial.' WHERE id='.$g_account->id ); 
 }
 
-if( !IsPageValid( $g_page, $g_challenge ) ) {
-	$g_page = 0;
+$g_account = LogIn();
+
+if( !IsPageValid( $g_account ) ) {
+	$g_account->page = 0;
 }
 
 if( $g_page == 0 ) {
@@ -237,7 +212,6 @@ if( $g_page == 0 ) {
 	// at this point mypage is valid
 	// and 0 is valid which means "no page available."
 }
- 
 
 function ShowTopic() {
 	global $g_page, $g_challenge;
@@ -318,24 +292,7 @@ function ShowTopic() {
 	
 	echo '<div class="replies" id="replies">';
 	echo     '<div class="replylist" id="replylist">';
-	/*
-	foreach( $topic->comments as $comment ) {
-		echo '<div class="reply">';
-		echo    $comment->content;
-		if( $topic->state == TopicStates::Live ) {
-			if( $comment->vote === true ) {
-				echo '<div class="rvote rgood" ><img src="star.png" alt="good"></div>';
-			} else {
-				echo '<div class="rvote rgood" ><img src="unstar.png" alt="good"></div>';
-			}
-			if( $comment->vote === false ) {
-				echo '<div class="rvote rbad" ><img src="bad.png" alt="bad"></div>';
-			} else {
-				echo '<div class="rvote rbad" ><img src="notbad.png" alt="bad"></div>';
-			}
-		}
-		echo '</div>'; // reply
-	}*/
+ 
 	echo '</div>'; // replylist
 	
 	if( $topic->state == TopicStates::Live ) {
@@ -361,6 +318,10 @@ function ShowTopic() {
 		</script>
 		
 		<?php
+	} else if( $topic->state == TopicStates::Old ) {
+		?><script>
+			Button.DoLiveRefresh();
+		</script><?php
 	}
 	
 	echo '</div>'; // replies
@@ -375,4 +336,5 @@ function ShowTopic() {
 }
 
 ShowTopic(); 
+
 ?>

@@ -10,6 +10,33 @@ abstract class TopicStates {
     const Live		= 3;
 }
 
+//-----------------------------------------------------------------------------
+class Account {
+	public $id;
+	public $password;
+	public $page;
+	public $serial;
+	
+	public static function FromAssoc( $row ) {
+		$account = new Account();
+		$account->id = $row['id'];
+		$account->password = $row['password'];
+		$account->page = $row['page'];
+		$account->serial = $row['serial'];
+		return $account;
+	}
+	
+	public static function FromArgs( $id, $password, $page, $serial ) {
+		$account = new Account();
+		$account->id = $id;
+		$account->password = $password;
+		$account->page = $page;
+		$account->serial = $serial;
+		return $account;
+	}
+}
+
+//-----------------------------------------------------------------------------
 // compares two entries with values "goods" (good votes) and "bads" (bad votes)
 function ScoreCmp( $a, $b ) {
 	$c = $a['goods'] - $a['bads'];
@@ -22,6 +49,78 @@ function ScoreCmp( $a, $b ) {
 function ReadCookieInt( $key ) {
 	if( !isset($_COOKIE[$key]) ) return 0;
 	return is_numeric($_COOKIE[$key]) ? (int)$_COOKIE[$key] : 0;
+}
+ 
+//-----------------------------------------------------------------------------
+function CreateNewAccount( $sql ) {
+	// this function expects the accounts table to be locked.
+	
+	$password = mt_rand() & 0xFFFFFFF;
+	$sql->safequery(
+		"INSERT INTO Accounts (password,ip,page,serial)
+		VALUES ($password,x'$xip',0,0)" );
+	$sql->safequery( "UNLOCK TABLES" );
+	$result = $sql->safequery( "SELECT LAST_INSERT_ID()" );
+	$row = $result->fetch_row();
+	
+	$account = Account::FromArgs( $row[0], $password, 0, 0 );
+	setcookie( "account", $account->id, time() + 60*60*24*30, $apath );
+	setcookie( "password", $account->password, time() + 60*60*24*30, $apath );
+	return $account;
+}
+
+//-----------------------------------------------------------------------------
+function FindOrCreateAccount() {
+	// no account cookie, create a new account or use existing one for IP.
+	$sql = GetSQL();
+	$xip = GetIPHex();
+	
+	$result = $sql->safequery( "LOCK TABLE Accounts WRITE" );
+	
+	$result = $sql->safequery( 
+		"SELECT id, password, page, serial FROM Accounts WHERE ip=x'$xip'" );
+		
+	if( $result->num_rows < $ACCOUNTS_PER_IP  ) {
+		// create new account
+		return CreateNewAccount( $sql );
+	} else {
+		// use existing account
+		
+		$choices = array();
+		while( $row = $result->fetch_assoc() ) {
+			$choices[] = $row;
+		}
+		
+		// this should be above the last loop, but im not sure if it's safe to
+		// read a result after another command is executed.
+		$sql->safequery( "UNLOCK TABLES" );
+		
+		$index = mt_rand( 0, count($choices)-1 );
+		$account = Account::FromAssoc( $choices[$index] );
+		setcookie( "account", $account->id, time() + 60*60*24*30, $apath );
+		setcookie( "password", $account->password, time() + 60*60*24*30, $apath );
+		return $account;
+	}
+} 
+
+//-----------------------------------------------------------------------------
+function LogIn() {
+	$accountid = ReadCookieInt( "account" );
+	if( $accountid == 0 ) {
+		return FindOrCreateAccount();
+	} else {
+		// try to log in
+		$password = ReadCookieInt( "password" );
+		$result = $sql->safequery( 
+			"SELECT page, serial FROM Accounts 
+			WHERE id=$accountid AND password=$password" );
+		
+		$row = $result->fetch_row();
+		if( !$row ) {
+			return FindOrCreateAccount();
+		}
+		return Account::FromArgs( $accountid, $password, $row[0], $row[1] );
+	}
 }
 
 //-----------------------------------------------------------------------------
@@ -89,10 +188,12 @@ function CheckTopicExpired2( $id, $goods, $bads, $time ) {
 			$sql->safequery( 
 			"UPDATE Topics SET state=".TopicStates::Deleted.
 			" WHERE state=".TopicStates::Live." AND id=$id" );
+			return 1;
 		} else {
 			FinalizeTopic( $id );
+			return 2;
 		}
-		return TRUE;
+		
 	}
 	return FALSE;
 }

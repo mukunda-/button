@@ -436,7 +436,9 @@ var LiveRefresh = new function() {
 	function DoRefresh() {
 		if( CheckSerial() ) return; 
 		
-		SetAutoRefresh();
+		if( g_topic_state == 'live' ) {
+			SetAutoRefresh();
+		}
 	
 		$.get( "liverefresh.php", 
 			{page: g_page, 
@@ -458,7 +460,8 @@ var LiveRefresh = new function() {
 	}
 	
 	this.Refresh = function() {
-		if( g_topic_state != "live" ) return;
+		if( g_topic_state != "live" &&
+			g_topic_state != 'old' ) return;
 		
 		m_queue.push( g_page_serial );
 		if( !m_refreshing ) {
