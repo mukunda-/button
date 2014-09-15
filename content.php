@@ -230,8 +230,7 @@ function ShowTopic() {
 	global $g_page, $g_challenge;
 	
 	echo '<script>';
-	echo "g_page      = $g_page;";
-	echo "g_challenge = $g_challenge;";
+	echo "Button.SetPage( $g_page, $g_challenge );";
 	echo '</script>';
 	
 	
@@ -265,16 +264,15 @@ function ShowTopic() {
 				<div class="compose" contenteditable="true" id="composition"></div>
 			  </div>';
 			  
-		echo '<div class="submit" onclick="submitComposition()" id="submit">discuss</div>';
+		echo '<div class="submit" onclick="Button.SubmitComposition()" id="submit">discuss</div>';
 		
 		?>
 		
 		<script>
 			$("#composition").keydown( function() {
-				if( g_loading ) return false;
-				setTimeout( compositionKeyPressed, 0 );
+				if( Button.IsLoading() ) return false;
+				setTimeout( Button.CompositionKeyPressed, 0 );
 			});
-			g_compose_sending = false;
 		</script>
 		
 		<?php
@@ -285,7 +283,7 @@ function ShowTopic() {
 	echo '<div class="topic" id="topic">';
 	echo $topic->content;
 	if( $topic->state == TopicStates::Live ) {
-		echo '<script>g_topic_state="live"</script>';
+		echo '<script>Button.SetTopicState("live")</script>';
 		if( $topic->vote === true ) {
 			echo '<div class="good" id="goodbutton"><img src="star.png" alt="good" title="good"></div>';
 			echo '<div class="bad" id="badbutton"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
@@ -299,7 +297,7 @@ function ShowTopic() {
 		 
 		
 	} else if( $topic->state == TopicStates::Old ) {
-		echo '<script>g_topic_state="old"</script>';
+		echo '<script>Button.SetTopicState("old")</script>';
 		// print score
 	}
 	echo '</div>';
@@ -341,15 +339,11 @@ function ShowTopic() {
 			});
 			
 			$("#replyinput").keydown( function() {
-				if( g_loading ) return false;
-				setTimeout( replyKeyPressed, 0 );
+				if( Button.IsLoading() ) return false;
+				setTimeout( Button.ReplyKeyPressed, 0 );
 			});
-			 
-			g_compose_sending = false;
-			g_last_comment = 0;
-			g_num_replies = 0;
-			g_refreshing_comments = false;
-			refreshComments();
+			  
+			Button.DoLiveRefresh();
 		</script>
 		
 		<?php
@@ -358,7 +352,7 @@ function ShowTopic() {
 	echo '</div>'; // replies
 	
 	
-	echo '<div class="submit" onclick="submitComment()" id="submit">submit</div>';
+	echo '<div class="submit" onclick="Button.SubmitComment()" id="submit">submit</div>';
 		
 	echo '<div class="padding" id="padding"></div>';
 	

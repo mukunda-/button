@@ -18,9 +18,6 @@
 	<div id="content">
 		
 	</div>
-	
-	<script>
-	
-	</script>
+	 
 </body>
 </html>

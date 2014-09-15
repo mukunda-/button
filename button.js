@@ -1,4 +1,11 @@
 
+(function() {
+
+console.log('hi');
+
+var FADE_OUT_TIME = 500; 
+var FADE_IN_TIME = 500;
+
 var g_loading = false;
 var g_loading_fading_out = false;
 var g_loading_page_content = null;
@@ -9,22 +16,13 @@ var g_challenge = 0;
 var g_last_comment = 0;
 var g_num_comments = 0;
 var g_topic_state = "old";
-
-var g_last_comment_refresh = 0;
-var g_refreshing_comments = false;
-var g_autorefresh_comments_handle = null;
-
+  
 var g_page_serial = 0; // used to catch outdated operations.
-
-var FADE_OUT_TIME = 500; 
-var FADE_IN_TIME = 500;
- 
-var g_refresh_comments_ajax = null;
 
 //-----------------------------------------------------------------------------
 // read element text with converted line breaks
-function readText( element ) {
-
+function ReadText( element ) {
+	// TODO fix trailing space bug
 	// invisible "workspace" element
 	mb = $('#magicbox'); 
 	
@@ -38,19 +36,19 @@ function readText( element ) {
 }
 
 //-----------------------------------------------------------------------------
-function submitComposition() {
+function SubmitComposition() {
 	if( g_loading ) return false;
 	if( g_compose_sending ) return false;
 	if(  $('#composition').text().trim() == "" ) {
 		return false;
 	}
 	
-	var content = readText( $('#composition') );  
+	var content = ReadText( $('#composition') );  
 	
 	g_compose_sending = true;
 	$("#composition").attr('contentEditable', false);
 	//$("#composition").removeClass('composing');
-	hideSubmit(); 
+	HideSubmit(); 
 			
 	$.post( "compose.php", { text: content, page: g_page, challenge: g_challenge } )
 		.done( function( data ) {
@@ -59,15 +57,15 @@ function submitComposition() {
 				alert( 'couldn\'t post topic.' );
 				g_compose_sending = false; 
 				$( "#composition" ).attr( 'contentEditable', true ); 
-				showSubmit( $("#composition") );
+				ShowSubmit( $("#composition") );
 			} else if( data == 'expired' ) {
-				loadPage( 'error.php?expired' );
+				LoadPage( 'error.php?expired' );
 			} else if( data == 'empty' ) {
-				loadPage( 'error.php?emptycomposition' );
+				LoadPage( 'error.php?emptycomposition' );
 			} else if( data == 'toolong' ) {
-				loadPage( 'error.php?toolong' );
+				LoadPage( 'error.php?toolong' );
 			} else {
-				refreshContent(); 
+				RefreshContent(); 
 			}
 		})
 		.fail( function() {
@@ -75,21 +73,22 @@ function submitComposition() {
 			 
 			g_compose_sending = false;
 			$( "#replyinput" ).attr( 'contentEditable', true ); 
-			showSubmit( $("#composition") );
+			ShowSubmit( $("#composition") );
 		});
 }
 
-function submitComment() {
+//-----------------------------------------------------------------------------
+function SubmitComment() {
 	if( g_loading ) return false;
 	if( g_compose_sending ) return false;
 	if(  $('#replyinput').text().trim() == "" ) {
 		return false;
 	} 
-	var content = readText( $('#replyinput') );  
+	var content = ReadText( $('#replyinput') );  
 	
 	g_compose_sending = true;
 	$("#replyinput").attr( 'contentEditable', false );  
-	hideSubmit();
+	HideSubmit();
 			
 	$.post( "reply.php", { text: content, 
 	                       page: g_page, 
@@ -105,7 +104,7 @@ function submitComment() {
 			} else if( data == 'expired' ) {
 				
 				alert( 'too late.' );
-				refreshContent(); 
+				RefreshContent(); 
 			} else if( data == 'tooshort' ) {
 				reopeninput = true;
 				alert( 'too short.' );
@@ -120,13 +119,13 @@ function submitComment() {
 				
 				$( "#replyinputbox" ).addClass( 'fade' ); 
 				$( "#replyinputbox" ).css( 'opacity', 0 ); 
-				setTimeout( refreshComments, 500 );
+				setTimeout( LiveRefresh.Refresh, 500 );
 			}
 			
 			if( reopeninput ) {
 				g_compose_sending = false;
 				$( "#replyinput" ).attr( 'contentEditable', true ); 
-				showSubmit( $( "#replyinput" ) );
+				ShowSubmit( $( "#replyinput" ) );
 			}
 		})
 		.fail( function() {
@@ -134,12 +133,12 @@ function submitComment() {
 			
 			g_compose_sending = false;
 			$( "#replyinput" ).attr( 'contentEditable', true ); 
-			showSubmit( $( "#replyinput" ) );
+			ShowSubmit( $( "#replyinput" ) );
 		});
 }
 
 //-----------------------------------------------------------------------------
-function hideSubmit() {
+function HideSubmit() {
 	
 	var submit = $("#submit");
 	submit.attr( 'disabled', 'disabled' );
@@ -147,7 +146,8 @@ function hideSubmit() {
 	submit.css( 'cursor', 'default' );
 }
 
-function showSubmit( parent ) {
+//-----------------------------------------------------------------------------
+function ShowSubmit( parent ) {
 	var submit = $("#submit");
 	if( parent.text().trim() != "" ) {
 		submit.css( 'opacity', 1.0 );
@@ -161,24 +161,25 @@ function showSubmit( parent ) {
 }
 
 //-----------------------------------------------------------------------------
-function compositionKeyPressed() {
+function CompositionKeyPressed() {
 	
-	adjustTop();
+	AdjustTop();
 	if( !g_compose_sending ) {
-		showSubmit( $("#composition") ); 
+		ShowSubmit( $("#composition") ); 
 	}
 }
 
-function replyKeyPressed() {
+//-----------------------------------------------------------------------------
+function ReplyKeyPressed() {
 
 	if( !g_compose_sending ) {
-		showSubmit( $("#replyinput") ); 
+		ShowSubmit( $("#replyinput") ); 
 	}
 	 
 }
 
 //-----------------------------------------------------------------------------
-function adjustTop() {
+function AdjustTop() {
 	var poop = $('#topic');
 	var height = poop.height() 
 		+ parseInt(poop.css('padding-top'))
@@ -189,72 +190,57 @@ function adjustTop() {
 	$("#goodbutton").css( "top", (height / 2 - 16) + "px" );
 	$("#badbutton").css( "top", (height / 2 - 16) + "px" );
 	height += 16; // body margin
-	$margin = ((sh/2)-(height/2));
-	if( $margin < 32 ) {
-		$margin = 32;
+	var margin = ((sh/2)-(height/2));
+	if( margin < 32 ) {
+		margin = 32;
 	}
-	poop.css( 'margin-top', $margin + "px" );
+	poop.css( 'margin-top', margin + "px" );
 }
 
 //-----------------------------------------------------------------------------
-function adjustBottom() {
+function AdjustBottom() {
 	if( $('#replies').length != 0 ) {
-	 
-		var sh = $( window ).height(); 
+	
+		var sh = $( window ).height();
 		$('#padding').css( 'height', ((sh/2)) + "px" );
 	}
 }
 
 
 //-----------------------------------------------------------------------------
-$(window).bind("mousewheel",function(ev, delta) {
-	var scrollTop = $(window).scrollTop()-Math.round(delta)*51;
-	$(window).scrollTop(scrollTop-Math.round(delta)*51); 
-}); 
-
-//-----------------------------------------------------------------------------
-function adjustSize() {
-	adjustTop();
-	adjustBottom();
+function AdjustSize() {
+	AdjustTop();
+	AdjustBottom();
 	
-	contentwidth = $(window).width() - 72 - 16; // - padding - body width
+	var content_width = $(window).width() - 72 - 16; // - padding - body width
 	
-	if( contentwidth > 574 ) contentwidth = 574;
-	if( contentwidth < 32 ) contentwidth = 32;
+	if( content_width > 574 ) content_width = 574;
+	if( content_width < 32 ) content_width = 32;
 	
-	$( '.replies .reply' ).css( 'max-width', contentwidth + 'px' );
+	$( '.replies .reply' ).css( 'max-width', content_width + 'px' );
 }
-
+ 
 //-----------------------------------------------------------------------------
-$(window).resize( function () { 
-	adjustSize();
-});
-
-//-----------------------------------------------------------------------------
-//$(window).load( function() {
-	//adjustSize(); 
-//	setTimeout( function() {$('#content').css( 'opacity', 1);}, 100 );
-//});
-
-//-----------------------------------------------------------------------------
-$( window ).on ( 'beforeunload', function(){ 
-   $('#content').css( 'opacity', 0 );
-});
-
-//-----------------------------------------------------------------------------
-function pageLoadFailedContent() {
+function PageLoadFailedContent() {
 	return '<div class="topic nothing" id="topic">'+
 			   'the page failed to load.'+
 		   '</div>';
 }
 
 //-----------------------------------------------------------------------------
-function fadeIn( content ) {	
+function FadeIn( content ) {	
 
 	g_page_serial++;
 	output = $('#content');
 	$('#content').html( content );
-	adjustSize();
+	
+	// global initialization here:
+	g_compose_sending = false;
+	g_last_comment = 0;
+	g_num_replies = 0;
+	
+	
+	AdjustSize();
 	output.css( 'opacity', 1 ); // fade in
 	setTimeout(
 		function() {
@@ -264,7 +250,7 @@ function fadeIn( content ) {
 }
 
 //-----------------------------------------------------------------------------
-function loadPage( url, delay ) {
+function LoadPage( url, delay ) {
 	if( typeof delay === 'undefined' ) delay = 500;
 	if( delay < 0 ) delay = -delay - FADE_OUT_TIME;
 	// delay is used to control the Extra Dramatic Break Effect
@@ -284,7 +270,7 @@ function loadPage( url, delay ) {
 		function() {
 			g_loading_fading_out = false; 
 			if( g_loading_page_content != null ) {
-				fadeIn( g_loading_page_content );
+				FadeIn( g_loading_page_content );
 				g_loading_page_content = null;
 			} else {
 				// we finished first, prime the output.
@@ -298,7 +284,7 @@ function loadPage( url, delay ) {
 			if( g_loading_fading_out ) {
 				g_loading_page_content = data;
 			} else {
-				fadeIn( data );
+				FadeIn( data );
 				
 			}
 		})
@@ -306,53 +292,19 @@ function loadPage( url, delay ) {
 			if( g_loading_fading_out ) {
 				g_loading_page_content = pageLoadFailedContent();
 			} else {
-				fadeIn( pageLoadFailedContent() );
+				FadeIn( pageLoadFailedContent() );
 			}
 		});
 	
 }
 
 //-----------------------------------------------------------------------------
-function refreshContent() {
-	loadPage( 'content.php' );
+function RefreshContent() {
+	LoadPage( 'content.php' );
 }
 
 //-----------------------------------------------------------------------------
-function tookTooLong() {
-}
-
-//-----------------------------------------------------------------------------
-$( function() { 
-	loadPage('content.php',-200);
-});
-
-//-----------------------------------------------------------------------------
-$(document).bind('keydown', function(e) {
-/* DEBUG BYPASS
-	if( g_loading ) return false;
-    if( e.which === 116 ) {
-		loadPage( 'content.php', 500 );
-		return false;
-    }
-    if( e.which === 82 && e.ctrlKey ) {
-		loadPage('content.php');
-		return false;
-    }*/
-	 if( e.which === 32 ) {
-		refreshComments();
-		}
-});
-//-----------------------------------------------------------------------------
-$(document).bind('mousedown', function(e) {
-
-	if( g_loading_fading_out ) return false;
-});
-
-function interruptRefreshComments() {
-	
-}
-
-function LiveRefresh() {
+var LiveRefresh = new function() { 
 	var m_this = this;
 	var m_queue = [];
 	var m_refreshing = false;
@@ -371,14 +323,14 @@ function LiveRefresh() {
 	
 	function CancelAutoRefresh() {
 		if( m_autorefresh_handle != null ) {
-			clearTimeout(m_autorefresh_handle);
+			clearTimeout( m_autorefresh_handle );
 			m_autorefresh_handle = null;
 		}
 	}
 	
 	function SetAutoRefresh() {
 		CancelAutoRefresh();
-		m_autorefresh_handle = setTimeout( refreshComments, 35*1000 );
+		m_autorefresh_handle = setTimeout( m_this.Refresh, 35*1000 );
 	}
 	
 	function ShowCommentReply() {
@@ -419,7 +371,6 @@ function LiveRefresh() {
 	
 	function OnAjaxDone( data ) {
 		if( CheckSerial() ) return; 
-
 		if( data != 'error' ) {
 			data = JSON.parse( data );
 			
@@ -436,7 +387,7 @@ function LiveRefresh() {
 				if( g_topic_state == "live" ) {
 					var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content;
 					var selected = entry.vote === true ? " selected": "";
-					html += '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="voteCommentGood('+entry.id+')">';
+					html += '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="VoteCommentGood('+entry.id+')">';
 					if( entry.vote === true ) {
 						html += '<img src="star.png" alt="good"></div>';
 					} else {
@@ -444,7 +395,7 @@ function LiveRefresh() {
 					}
 					
 					selected = entry.vote === false ? " selected": "";
-					html += '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="voteCommentBad('+entry.id+')">';
+					html += '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="VoteCommentBad('+entry.id+')">';
 					if( entry.vote === false ) {
 						html += '<img src="bad.png" alt="bad"></div>';
 					} else {
@@ -475,13 +426,12 @@ function LiveRefresh() {
 		
 		SetAutoRefresh();
 	
-		$.get( "getcomments.php", 
+		$.get( "liverefresh.php", 
 			{page: g_page, 
 			challenge: g_challenge, 
 			last: g_last_comment} ) 
-		.done( OnCompleteAjax )
-		
-		.fail( function( data ) {
+		.done( OnAjaxDone )
+		.fail( function() {
 			// try again later
 			DequeueNext();
 		});
@@ -496,7 +446,7 @@ function LiveRefresh() {
 	}
 	
 	this.Refresh = function() {
-			
+		
 		m_queue.push( g_page_serial );
 		if( !m_refreshing ) {
 			DequeueNext();
@@ -505,18 +455,15 @@ function LiveRefresh() {
 	 
 }
 
-g_live_refresh = new LiveRefresh();
-
-
-function voteTopicGood() {
+function VoteTopicGood() {
 	
 }
 
-function voteTopicBad() {
+function VoteTopicBad() {
 	
 }
 
-function voteComment( id, upvote ) {
+function VoteComment( id, upvote ) {
 	var vgood = $( '#votegood' + id );
 	var vbad = $( '#votebad' + id );
 	
@@ -537,7 +484,7 @@ function voteComment( id, upvote ) {
 		vgood.html( '<img src="unstar.png">' );
 		vbad.html( '<img src="bad.png">' );
 	}
-			!
+	
 	$.post( 'commentvote.php', 
 		{ page: g_page, 
 		  challenge: g_challenge, 
@@ -549,10 +496,86 @@ function voteComment( id, upvote ) {
 	
 }
 
-function voteCommentGood(id) {
-	voteComment( id, true );
+//-----------------------------------------------------------------------------
+function VoteCommentGood(id) {
+	VoteComment( id, true );
 }
 
-function voteCommentBad(id) {
-	voteComment( id, false );
+//-----------------------------------------------------------------------------
+function VoteCommentBad(id) {
+	VoteComment( id, false );
 }
+
+//-----------------------------------------------------------------------------
+$(window).bind("mousewheel",function(ev, delta) {
+	var scrollTop = $(window).scrollTop()-Math.round(delta)*51;
+	$(window).scrollTop(scrollTop-Math.round(delta)*51); 
+}); 
+
+//-----------------------------------------------------------------------------
+$(window).resize( function () { 
+	AdjustSize();
+});
+
+//-----------------------------------------------------------------------------
+$( window ).on ( 'beforeunload', function(){ 
+   $('#content').css( 'opacity', 0 );
+});
+
+//-----------------------------------------------------------------------------
+$( function() { 
+	LoadPage('content.php',-200);
+});
+
+//-----------------------------------------------------------------------------
+$(document).bind('mousedown', function(e) {
+	if( g_loading_fading_out ) return false;
+});
+ 
+//-----------------------------------------------------------------------------
+$(document).bind('keydown', function(e) {
+	if( g_loading_fading_out ) return false;
+	
+/* DEBUG BYPASS
+    if( e.which === 116 ) {
+		if( g_loading ) return false;
+		LoadPage( 'content.php', 500 );
+		return false;
+    }
+    if( e.which === 82 && e.ctrlKey ) {
+		if( g_loading ) return false;
+		LoadPage('content.php');
+		return false;
+    }*/
+	if( e.which === 32 ) { // DEBUG
+		refreshComments();
+	}
+});
+
+// ****************************************************************************
+// exposure
+// ****************************************************************************
+
+window.Button = window.Button || {};
+
+window.Button.SetPage = function( page, challenge ) {
+	g_page = page;
+	g_challenge = challenge;
+}
+
+window.Button.SetTopicState = function( state ) {
+	g_topic_state = state;
+}
+
+window.Button.IsLoading = function() {
+	return g_loading;
+}
+
+window.Button.CompositionKeyPressed = CompositionKeyPressed;
+window.Button.ReplyKeyPressed       = ReplyKeyPressed;
+window.Button.DoLiveRefresh         = LiveRefresh.Refresh;
+window.Button.SubmitComposition     = SubmitComposition;
+window.Button.SubmitComment         = SubmitComment;
+
+})()
+
