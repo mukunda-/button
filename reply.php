@@ -8,12 +8,6 @@ $MAXCHARS = 220;
 $MAXLINES = 8;
 
 //-----------------------------------------------------------------------------
-function ReadCookieInt( $key ) {
-	if( !isset($_COOKIE[$key]) ) return 0;
-	return is_numeric($_COOKIE[$key]) ? (int)$_COOKIE[$key] : 0;
-}
-
-//-----------------------------------------------------------------------------
 try {
 	
 	if( !isset( $_POST['text'] ) ||
@@ -81,7 +75,7 @@ try {
 	exit( 'okay.' );
 	
 } catch ( Exception $e ) {
-	exit( 'error' );
+	
 }
-
+exit( 'error' );
 ?>

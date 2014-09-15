@@ -10,6 +10,20 @@ abstract class TopicStates {
     const Live		= 3;
 }
 
+// compares two entries with values "goods" (good votes) and "bads" (bad votes)
+function ScoreCmp( $a, $b ) {
+	$c = $a['goods'] - $a['bads'];
+	$d = $b['goods'] - $b['bads'];
+	if( $c == $d ) return 0;
+	return ($c>$d) ? -1 : 1;
+}
+	
+//-----------------------------------------------------------------------------
+function ReadCookieInt( $key ) {
+	if( !isset($_COOKIE[$key]) ) return 0;
+	return is_numeric($_COOKIE[$key]) ? (int)$_COOKIE[$key] : 0;
+}
+
 //-----------------------------------------------------------------------------
 function GetIPHex() {
 	return bin2hex(inet_pton( $_SERVER['REMOTE_ADDR'] ));

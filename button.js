@@ -14,10 +14,11 @@ var g_last_comment_refresh = 0;
 var g_refreshing_comments = false;
 var g_autorefresh_comments_handle = null;
 
+var g_page_serial = 0; // used to catch outdated operations.
+
 var FADE_OUT_TIME = 500; 
 var FADE_IN_TIME = 500;
-
-var refreshCommentsQueue = $({});
+ 
 var g_refresh_comments_ajax = null;
 
 //-----------------------------------------------------------------------------
@@ -249,6 +250,8 @@ function pageLoadFailedContent() {
 
 //-----------------------------------------------------------------------------
 function fadeIn( content ) {	
+
+	g_page_serial++;
 	output = $('#content');
 	$('#content').html( content );
 	adjustSize();
@@ -257,6 +260,7 @@ function fadeIn( content ) {
 		function() {
 			g_loading = false;
 		}, FADE_IN_TIME );
+		
 }
 
 //-----------------------------------------------------------------------------
@@ -348,23 +352,41 @@ function interruptRefreshComments() {
 	
 }
 
-//-----------------------------------------------------------------------------
-function refreshComments() {
- 
+function LiveRefresh() {
+	var m_this = this;
+	var m_queue = [];
+	var m_refreshing = false;
+	var m_serial;
+	var m_autorefresh_handle = null;
+	
 	function DequeueNext() {
-		if( refreshCommentsQueue.queue( "rc" ).length == 0 ) {
-			g_refreshing_comments = false;
+		m_refreshing = true;
+		if( m_queue.length == 0 ) {
+			m_refreshing = false;
 			return;
 		}
-		
-		refreshCommentsQueue.dequeue( "rc" );
+		m_serial = m_queue.shift();
+		DoRefresh();
 	}
 	
-	function showCommentReply() {
+	function CancelAutoRefresh() {
+		if( m_autorefresh_handle != null ) {
+			clearTimeout(m_autorefresh_handle);
+			m_autorefresh_handle = null;
+		}
+	}
+	
+	function SetAutoRefresh() {
+		CancelAutoRefresh();
+		m_autorefresh_handle = setTimeout( refreshComments, 35*1000 );
+	}
+	
+	function ShowCommentReply() {
 		// last function in queue string.
 		var rpi = $( '#replyinputbox' );
 		if( !rpi.hasClass( 'fade' ) ) {
 			setTimeout( function() {
+				if( CheckSerial() ) return; 
 				if( !rpi.hasClass( 'fade' ) ) {
 					rpi.css( "opacity", 1 );
 				}
@@ -372,114 +394,118 @@ function refreshComments() {
 		}
 		DequeueNext();
 	}
-	
-	function cancelAutoRefreshComments() {
-		if( g_autorefresh_comments_handle != null ) {
-			clearTimeout(g_autorefresh_comments_handle);
-			g_autorefresh_comments_handle = null;
-		}
-	}
-
-	function setAutoRefreshComments() { 
-		cancelAutoRefreshComments();
-		g_autorefresh_comments_handle = setTimeout( refreshComments, 35*1000 );
-	}
-	
-	
-	function chainFadeComments( start, end ) {
+		
+	function ChainFadeComments( start, end ) {
 		if( end < start ) {
-			showCommentReply();
+			ShowCommentReply();
 			return;
 		}
 		
 		var id = start;
 		var func = function() {
+			if( CheckSerial() ) return; 
 			
 			$( '#comment' + id ).css( "opacity", 1 );
 			id++;
 			if( id <= end ) {
 				setTimeout( func, 100 );
 			} else {
-				showCommentReply();
+				ShowCommentReply();
 				
 			}
 		}
 		setTimeout( func, 50 );
 	}
-
-	function startRefresh() {
 	
-		setAutoRefreshComments();
+	function OnAjaxDone( data ) {
+		if( CheckSerial() ) return; 
+
+		if( data != 'error' ) {
+			data = JSON.parse( data );
+			
+			var startcomment = g_num_comments;
+			
+			for( var i = 0; i < data.length; i++ ) {
+				
+				var entry = data[i];
+				
+				if( entry.id > g_last_comment ) {
+					g_last_comment = entry.id;
+				}
+				
+				if( g_topic_state == "live" ) {
+					var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content;
+					var selected = entry.vote === true ? " selected": "";
+					html += '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="voteCommentGood('+entry.id+')">';
+					if( entry.vote === true ) {
+						html += '<img src="star.png" alt="good"></div>';
+					} else {
+						html += '<img src="unstar.png" alt="good"></div>';
+					}
+					
+					selected = entry.vote === false ? " selected": "";
+					html += '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="voteCommentBad('+entry.id+')">';
+					if( entry.vote === false ) {
+						html += '<img src="bad.png" alt="bad"></div>';
+					} else {
+						html += '<img src="notbad.png" alt="bad"></div>';
+						
+					}
+					html += '</div> ';
+					
+					
+				} else {
+					var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content + '</div>&nbsp;';
+					
+				}
+				g_num_comments++;
+				
+				$( '#replylist' ).append( html );
+				
+			}
+			ChainFadeComments( startcomment, g_num_comments-1 );
+		} else {
+		
+			DequeueNext();
+		}
+	}
+	
+	function DoRefresh() {
+		if( CheckSerial() ) return; 
+		
+		SetAutoRefresh();
 	
 		$.get( "getcomments.php", 
 			{page: g_page, 
 			challenge: g_challenge, 
 			last: g_last_comment} ) 
-			
-		.done( function( data ) {
-
-			if( data != 'error' ) {
-				data = JSON.parse( data );
-				
-				var startcomment = g_num_comments;
-				
-				for( var i = 0; i < data.length; i++ ) {
-					
-					var entry = data[i];
-					
-					if( entry.id > g_last_comment ) {
-						g_last_comment = entry.id;
-					}
-					
-					if( g_topic_state == "live" ) {
-						var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content;
-						var selected = entry.vote === true ? " selected": "";
-						html += '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="voteCommentGood('+entry.id+')">';
-						if( entry.vote === true ) {
-							html += '<img src="star.png" alt="good"></div>';
-						} else {
-							html += '<img src="unstar.png" alt="good"></div>';
-						}
-						
-						selected = entry.vote === false ? " selected": "";
-						html += '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="voteCommentBad('+entry.id+')">';
-						if( entry.vote === false ) {
-							html += '<img src="bad.png" alt="bad"></div>';
-						} else {
-							html += '<img src="notbad.png" alt="bad"></div>';
-							
-						}
-						html += '</div> ';
-						
-						
-					} else {
-						var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content + '</div>&nbsp;';
-						
-					}
-					g_num_comments++;
-					
-					$( '#replylist' ).append( html );
-					
-				}
-				chainFadeComments( startcomment, g_num_comments-1 );
-			} else {
-			
-				DequeueNext();
-			}
-		})
+		.done( OnCompleteAjax )
+		
 		.fail( function( data ) {
 			// try again later
 			DequeueNext();
 		});
 	}
-	refreshCommentsQueue.queue( "rc", startRefresh );
-	if( !g_refreshing_comments ) {
-		g_refreshing_comments = true;
-		refreshCommentsQueue.dequeue( "rc" );
-	}	
 	
-	// TODO refreshing page while refreshing comments.
+	function CheckSerial() {
+		if( m_serial != g_page_serial ) {
+			DequeueNext();
+			return true;
+		}
+		return false;
+	}
+	
+	this.Refresh = function() {
+			
+		m_queue.push( g_page_serial );
+		if( !m_refreshing ) {
+			DequeueNext();
+		}
+	}
+	 
 }
+
+g_live_refresh = new LiveRefresh();
 
 
 function voteTopicGood() {

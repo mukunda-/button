@@ -38,13 +38,6 @@ class Topic {
 	public $time;
 	public $valid;
 	
-	private function ScoreCmp( $a, $b ) {
-		$c = $a->goods - $a->bads;
-		$d = $b->goods - $b->bads;
-		if( $c == $d ) return 0;
-		return ($c>$d) ? -1 : 1;
-	}
-	
 	public function __construct( $id, $xip, $challenge ) {
 		$this->id = $id;
 		$this->ip = $xip;
@@ -97,13 +90,6 @@ class Topic {
 			shuffle( $this->comments );
 		}*/
 	}
-}
-
- 
-//-----------------------------------------------------------------------------
-function ReadCookieInt( $key ) {
-	if( !isset($_COOKIE[$key]) ) return 0;
-	return is_numeric($_COOKIE[$key]) ? (int)$_COOKIE[$key] : 0;
 }
 
 // page is the topic they are on

@@ -1,16 +1,10 @@
 <?php
- 
+
 require_once "sql.php";
 require_once "config.php";
 require_once "util.php";
 $MAXCHARS = 254;
 $MAXLINES = 15;
-
-//-----------------------------------------------------------------------------
-function ReadCookieInt( $key ) {
-	if( !isset($_COOKIE[$key]) ) return 0;
-	return is_numeric($_COOKIE[$key]) ? (int)$_COOKIE[$key] : 0;
-}
 
 //-----------------------------------------------------------------------------
 try {
@@ -32,8 +26,7 @@ try {
 		exit( 'wrongpage' );
 	}
 	
-	// sanitize text:
-	
+	// arduous text sanitation:
 	$text = $_POST['text'];
 	$text = str_replace( '[[br]]', "\n", $text );
 	$text = trim($text);
@@ -42,6 +35,7 @@ try {
 	$text = nl2br( $text, false ); // convert newlines to html
 	if( strlen( $text ) > $MAXCHARS || 
 			substr_count( $text, "<br>" ) > $MAXLINES ) {
+			
 		exit( 'toolong' );
 	}
 	

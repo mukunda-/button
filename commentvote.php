@@ -11,12 +11,6 @@ require_once "config.php";
 require_once "util.php";
 
 //-----------------------------------------------------------------------------
-function ReadCookieInt( $key ) {
-	if( !isset($_COOKIE[$key]) ) return 0;
-	return is_numeric($_COOKIE[$key]) ? (int)$_COOKIE[$key] : 0;
-}
-
-//-----------------------------------------------------------------------------
 try {
 
 	if( !isset( $_POST['page'] ) ||
