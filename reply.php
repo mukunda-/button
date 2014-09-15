@@ -1,7 +1,6 @@
 <?php
  
 require_once "sql.php";
-require_once "topic_states.php";
 require_once "config.php";
 require_once "util.php";
 
@@ -44,18 +43,29 @@ try {
 		exit( 'toolong' );
 	}
 	
+	if( CheckTopicExpired( $page, $challenge ) ) {
+		exit( 'expired' );
+	}
+	
 	$sql = GetSQL();
 	$s_live = TopicStates::Live;
 	$sql->safequery( "LOCK TABLES Topics READ, Comments WRITE" );
 	$result = $sql->safequery( 
-		"SELECT id FROM Topics ".
-		" WHERE id=$page AND challenge=$challenge AND ".
-		" state=". TopicStates::Live );
-		
+		"SELECT state FROM Topics ".
+		" WHERE id=$page AND challenge=$challenge" );
+	
 	if( $result->num_rows == 0 ) {
 		$sql->safequery( "UNLOCK TABLES" );
 		exit( 'error' );
+		
 	}
+	
+	$row = $result->fetch_row();
+	if( $row[0] == TopicStates::Old || $row[0] == TopicStates::Deleted ) {
+		$sql->safequery( "UNLOCK TABLES" );
+		exit( 'toolate' );
+	}
+	 
 	$xip = GetIPHex();
 	$text = $sql->real_escape_string( $text );
 	$sql->safequery( "INSERT INTO Comments (topic,ip,goods,bads,time,content) ".

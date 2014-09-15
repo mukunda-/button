@@ -1,7 +1,6 @@
 <?php
 
 require_once "sql.php";
-require_once "topic_states.php";
 require_once "config.php";
 require_once "util.php";
  /*
@@ -138,7 +137,9 @@ function IsPageValid( $page, $challenge ) {
 	}
 	
 	if( $row['state'] == TopicStates::Live ) {
-		if( CheckTopicExpired( $page, $row['goods'], $row['bads'], $row['time'] ) ) {
+		if( CheckTopicExpired2( $page, $row['goods'], $row['bads'], $row['time'] ) ) {
+			
+			setcookie( "page", 0, 0, $apath );
 			return true;
 		}
 		
@@ -146,73 +147,6 @@ function IsPageValid( $page, $challenge ) {
 	return true;
 }
 
-//-----------------------------------------------------------------------------
-function FinalizeTopic( $id ) {
-	$sql = GetSQL();
-	$sql->safequery( 
-			"LOCK TABLES ".
-			"Topics WRITE, Comments WRITE, CommentVotes READ" );
-	
-	$sql->safequery(
-			"UPDATE Topics SET state=".TopicStates::Old.
-			" WHERE state=".TopicStates::Live." AND id=$id" );
-	
-	if( $sql->affected_rows == 0 ) {
-		// the topic was already finalized
-		$sql->safequery( "UNLOCK TABLES" );
-		return;
-	}
-	
-	// get total of comment votes and assign them to the 
-	// comment entries
-	$sql->safequery( "
-		 UPDATE Comments LEFT JOIN 
-		  (SELECT commentid, 
-				  SUM(vote) AS goods, 
-				  SUM(1-vote) AS bads 
-				  FROM CommentVotes GROUP BY commentid
-		  ) AS VoteTotals 
-		 ON Comments.id = VoteTotals.commentid 
-		 SET Comments.goods = IFNULL(VoteTotals.goods,0), 
-		     Comments.bads = IFNULL(VoteTotals.bads,0) 
-		 WHERE topic = $id" );
-		 
-	$sql->safequery( "UNLOCK TABLES" );
-}
-
-//-----------------------------------------------------------------------------
-function CheckTopicExpired( $id, $goods, $bads, $time ) {
-	$totalvotes = (float)( $goods + $bads );
-	if( $totalvotes == 0 ) $totalvotes=1.0;
-	$score = (float)$goods / $totalvotes;
-	$removetime = 0; 
-	$delete = false;
-	
-	if( $score < 0.6 ) {
-		// under score 60, delete after 5 minutes
-		// remove after 5 minutes
-		$removetime = 60*5;
-		$delete = true;
-	} else {
-		// "old" after 30 minutes
-		$removetime = 60*30;
-	}
-	
-	if( time() >= ($row['time'] + $removetime) ) {
-		
-		// topic expired.
-		if( $delete ) {
-			$sql = GetSQL();
-			$sql->safequery( 
-			"UPDATE Topics SET state=".TopicStates::Deleted.
-			" WHERE state=".TopicStates::Live." AND id=$id" );
-		} else {
-			FinalizeTopic( $id );
-		}
-		return true;
-	}
-	return false;
-}
 
 //-----------------------------------------------------------------------------
 function GetNewPage() {
@@ -226,7 +160,7 @@ function GetNewPage() {
 	$xip = GetIPHex();
 	
 	$result = $sql->safequery( 
-		"SELECT id,state,time,vote,goods,bads FROM Topics ".
+		"SELECT id,challenge,state,time,vote,goods,bads FROM Topics ".
 		" LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip=x'$xip')".
 		" WHERE (state=$s_live OR state=$s_comp) LIMIT $SLOTS");
 	
@@ -262,7 +196,7 @@ function GetNewPage() {
 				continue;
 			}
 		} else if( $row['state'] == TopicStates::Live ) {
-		
+			
 			if( CheckTopicExpired( $row['id'], $row['goods'], 
 									$row['bads'], $row['time'] ) ) {
 				
@@ -272,18 +206,23 @@ function GetNewPage() {
 			
 			
 			if( $row['vote'] !== FALSE ) {
-				$choices[] = $row['id'];
+				$choices[] = array( 
+						"id" =>$row['id'], 
+						"ch" => $row['challenge'] );
+				
 			}
 		}
 	}
-	
-	if( empty( $choices ) ) {
+	 
+	if( empty( $choices ) ) { 
 		$g_page = 0;
 		setcookie( "page", 0, 0, $GLOBALS['apath'] );
 		return;
 	}
 	
-	$g_page = mt_rand( 0, count($choices)-1 );
+	$choice = $choices[mt_rand( 0, count($choices)-1 )];
+	$g_page = $choice['id'];
+	$g_challenge = $choice['ch'];
 	setcookie( "page", $g_page, time() + 60*60*30, $apath );
 	setcookie( "challenge", $g_challenge, time() + 60*60*30, $apath );
 }

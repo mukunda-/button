@@ -7,7 +7,6 @@
 //  vote = "good" or "cancer"
 
 require_once "sql.php";
-require_once "topic_states.php";
 require_once "config.php";
 require_once "util.php";
 

@@ -53,6 +53,7 @@ function submitComposition() {
 			
 	$.post( "compose.php", { text: content, page: g_page, challenge: g_challenge } )
 		.done( function( data ) {
+			alert(data);
 			if( data == 'error' ) {
 				alert( 'couldn\'t post topic.' );
 				g_compose_sending = false; 
@@ -95,12 +96,12 @@ function submitComment() {
 						   
 		.done( function( data ) {
 			var reopeninput = false;
-			
+			alert( data );
 			if( data == 'error' ) {
 				reopeninput = true;
 				alert( 'couldn\'t post comment.' );
 				
-			} else if( data == 'old' ) {
+			} else if( data == 'expired' ) {
 				
 				alert( 'too late.' );
 				refreshContent(); 
