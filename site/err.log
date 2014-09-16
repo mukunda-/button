@@ -160,3 +160,52 @@ getnewpage -- SQL Error: You have an error in your SQL syntax; check the manual 
     [previous:Exception:private] => 
 )
 
+[09/16/14 20:39:01 getnewpage] Exception Object
+(
+    [message:protected] => SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'AND state=2' at line 1
+    [string:Exception:private] => 
+    [code:protected] => 0
+    [file:protected] => Q:\web\button\site\sql.php
+    [line:protected] => 17
+    [trace:Exception:private] => Array
+        (
+            [0] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 100
+                    [function] => safequery
+                    [class] => sql_wrapper
+                    [type] => ->
+                    [args] => Array
+                        (
+                            [0] => DELETE FROM Topics WHERE id= AND state=2
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 214
+                    [function] => IsPageValid
+                    [args] => Array
+                        (
+                            [0] => Account Object
+                                (
+                                    [id] => 2
+                                    [password] => 169197238
+                                    [page] => 8
+                                    [serial] => 24
+                                    [lastreply] => 1410888926
+                                    [lastcompose] => 1410891731
+                                )
+
+                        )
+
+                )
+
+        )
+
+    [previous:Exception:private] => 
+)
+

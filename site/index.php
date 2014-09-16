@@ -10,7 +10,7 @@
 	<script src="jquery-1.11.0.min.js"></script>
 	<script src="jquery.mousewheel.min.js"></script>
 	<script src="button.js"></script>
-	<title>Anonymous Social Media Platform (TM)</title>
+	<title>matbox - the matter analyser</title>
 	
 </head>
 <body>	

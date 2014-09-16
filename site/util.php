@@ -51,7 +51,14 @@ function GetScore( $goods, $bads ) {
 	
 	$a = min( $total / $r, 1.0 );
 	
-	return round(25.0 * (1.0-$a) + ($goods*99/$total) * $a);
+	$sc = round(25.0 * (1.0-$a) + ($goods*99/$total) * $a);
+	if( $sc == 99 ) { // hack to prevent easy legendaries
+		if( $r < 100 ) {
+			return 98;
+		}
+	}
+	
+	return $sc;
 }
 
 //-----------------------------------------------------------------------------

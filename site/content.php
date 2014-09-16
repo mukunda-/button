@@ -97,7 +97,7 @@ function IsPageValid( $account ) {
 	if( $row['state'] == TopicStates::Composing && time() >= ($row['time'] + $GLOBALS['COMPOSE_TIMEOUT'] ) ) {
 		// delete composition, they took too long.
 		$sql->safequery( 
-			"DELETE FROM Topics WHERE id=$page AND state=".TopicStates::Composing );
+			'DELETE FROM Topics WHERE id='.$account->page.' AND state='.TopicStates::Composing );
 		return false;
 	}
 	
@@ -253,7 +253,7 @@ function ShowTopic() {
 	if( $g_account->page == 0 ) {
 		echo '
 			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
-				nothing to discuss. come back later.
+				nothing here. come back later.
 			</div>';
 		return false;
 	}
@@ -272,7 +272,7 @@ function ShowTopic() {
 	if( !$topic->valid ) {
 		echo '
 			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
-				nothing to discuss. come back later.
+				nothing here. come back later.
 			</div>';
 		return false;
 	}
@@ -280,7 +280,7 @@ function ShowTopic() {
 	if( $topic->state == TopicStates::Deleted ) {
 		echo '
 			  <div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
-			  	  this topic was buried.
+			  	  this matter was buried.
 			  </div>';
 		return false;
 	}
@@ -290,7 +290,7 @@ function ShowTopic() {
 				<div class="compose" contenteditable="true" id="composition"></div>
 			  </div>';
 			  
-		echo '<div class="submit" onclick="Button.SubmitComposition()" id="submit">discuss</div>';
+		echo '<div class="submit" onclick="Button.SubmitComposition()" id="submit">analyze</div>';
 		
 		?>
 		
