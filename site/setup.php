@@ -1,6 +1,11 @@
 <?php
 
+require_once "config.php";
+
+if( !isset($DEBUG) ) die();
+
 require_once "sql.php";
+
 
 $sql = GetSQL();
 

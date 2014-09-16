@@ -15,4 +15,6 @@ $OLD_TIME = 60*30;
 
 $ACCOUNTS_PER_IP = 1;
 
+//$DEBUG=1;
+
  ?>
