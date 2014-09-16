@@ -1,0 +1,10 @@
+Score Formula:
+
+GOODS = number of good votes
+BADS = number of bad votes
+
+TOTAL = GOODS+BADS 
+
+R = CONSTANT
+
+SCORE = LERP( 25, GOODS*99/MIN(TOTAL,1), MIN(TOTAL/R, 1.0) )
