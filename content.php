@@ -20,7 +20,7 @@ class Comment {
 		$this->content = $row['content'];
 		$this->goods = $row['goods'];
 		$this->bads = $row['bads'];
-		$this->time = $row['time'];
+0		$this->time = $row['time'];
 		$this->vote = $row['vote'];
 	}
 }*/
@@ -38,16 +38,15 @@ class Topic {
 	public $time;
 	public $valid;
 	
-	public function __construct( $id, $account ) {
-		$this->id = $id; 
-		
+	public function __construct( $account ) {
+		$this->id = $account->page;
 		$this->valid = false;
 		
 		$sql = GetSQL();
 		$result = $sql->safequery(
-			"SELECT account, state, goods, bads, time, content, vote FROM Topics 
-			LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.account=".$account->id.") 
-			WHERE id=$id" );
+			'SELECT Topics.account, state, goods, bads, time, content, vote FROM Topics 
+			LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.account='.$account->id.') 
+			WHERE id='.$account->page );
 		
 		$row = $result->fetch_assoc();
 		if( $row === FALSE ) return; 
@@ -69,7 +68,7 @@ function SaveAccount( $account, $page, $serial ) {
 	$sql = GetSQL(); 
 	$sql->safequery( 
 		'UPDATE Accounts SET page='.$page.', 
-		serial='.$serial.' WHERE id='.$g_account->id );
+		serial='.$serial.' WHERE id='.$account->id );
 }
 
 //-----------------------------------------------------------------------------
@@ -103,7 +102,7 @@ function IsPageValid( $account ) {
 	}
 	
 	if( $row['state'] == TopicStates::Live ) {
-		$result = CheckTopicExpired2( $page, $row['goods'], $row['bads'], $row['time'] );
+		$result = CheckTopicExpired2( $account->page, $row['goods'], $row['bads'], $row['time'] );
 		if( $result ) {
 			if( $result == 1 ) {
 				// deleted. choose new topic on next refresh.
@@ -125,8 +124,11 @@ function GetNewPage() {
 	 
 	$result = $sql->safequery( 
 		'SELECT id,state,time,vote,goods,bads FROM Topics
-		LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.ip='.$g_account->id.')
-		WHERE (state='.TopicStates::Live.' OR state='.TopicStates::Composing.') LIMIT '.$SLOTS );
+		LEFT JOIN TopicVotes 
+		ON (topicid=id AND TopicVotes.account='.$g_account->id.')
+		WHERE (state='.TopicStates::Live.' 
+		OR state='.TopicStates::Composing.') 
+		LIMIT '.$SLOTS );
 	
 	if( $result->num_rows < $SLOTS ) {
 		// chance to make a new 
@@ -134,7 +136,7 @@ function GetNewPage() {
 			// start new composition 
 			$sql->safequery( 
 				'INSERT INTO Topics ( account,state,goods,bads,time ) VALUES 
-				( '.$account->id.', '.TopicStates::Composing.', 0, 0, '.time().')' );
+				( '.$g_account->id.', '.TopicStates::Composing.', 0, 0, '.time().')' );
 	
 			$sql->safequery( 'UNLOCK TABLES' );
 			$result = $sql->safequery( 'SELECT LAST_INSERT_ID()' );
@@ -146,7 +148,7 @@ function GetNewPage() {
 			return;
 		}
 	}
-	$sql->safequery( "UNLOCK TABLES" );
+	$sql->safequery( 'UNLOCK TABLES' );
 	
 	$choices = array();
 	
@@ -155,7 +157,8 @@ function GetNewPage() {
 			if( time() >= ($row['time'] + $GLOBALS['COMPOSE_TIMEOUT']) ) {
 				// delete timed-out composition.
 				// we double-check that it is still in composition mode.
-				$sql->safequery( "DELETE FROM Topics WHERE id=".$row['id']." AND state=$s_comp" );
+				$sql->safequery( 
+					'DELETE FROM Topics WHERE id='.$row['id'].' AND state='.TopicStates::Composing );
 				continue;
 			}
 		} else if( $row['state'] == TopicStates::Live ) {
@@ -182,8 +185,10 @@ function GetNewPage() {
 	}
 	
 	if( empty( $choices ) ) { 
-		$g_page = 0;
-		setcookie( "page", 0, 0, $GLOBALS['apath'] );
+		
+		$g_account->page = 0;
+		$g_account->serial++;
+		SaveAccount( $g_account, 0, $g_account->serial );
 		return;
 	}
 	
@@ -194,20 +199,28 @@ function GetNewPage() {
 	SaveAccount( $g_account, $g_account->page, $g_account->serial );
 }
 
-$g_account = LogIn();
+try {
+	$g_account = LogIn();
 
-if( !IsPageValid( $g_account ) ) {
-	$g_account->page = 0;
+	if( !IsPageValid( $g_account ) ) {
+		$g_account->page = 0;
+	}
+
+	if( $g_account->page == 0 ) {
+		// try to find a new page
+		
+		GetNewPage();
+		// at this point mypage is valid
+		// and 0 is valid which means "no page available."
+	}
+} catch( Exception $e ) {
+	echo '
+			<div class="topic nothing" id="topic">
+				something messed up.
+			</div>';
+	die();
 }
-
-if( $g_account->page == 0 ) {
-	// try to find a new page
 	
-	GetNewPage();
-	// at this point mypage is valid
-	// and 0 is valid which means "no page available."
-}
-
 function ShowTopic() {
 	global $g_account;
 	
@@ -215,8 +228,7 @@ function ShowTopic() {
 	echo 'Button.SetSerial( '.$g_account->serial.' );';
 	echo 'Button.SetTopicState("none");';
 	echo '</script>';
-	
-	
+	 
 	if( $g_account->page == 0 ) {
 		echo '
 			<div class="topic nothing" id="topic">
@@ -224,7 +236,16 @@ function ShowTopic() {
 			</div>';
 		return false;
 	}
-	$topic = new Topic( $g_page, GetIPHex(), $g_challenge );
+	
+	try {
+		$topic = new Topic( $g_account );
+	} catch( Exception $e ) {
+		echo '
+			<div class="topic nothing" id="topic">
+				something messed up.
+			</div>';
+		die();
+	}
 	
 	if( !$topic->valid ) {
 		echo '
@@ -282,6 +303,7 @@ function ShowTopic() {
 	} else if( $topic->state == TopicStates::Old ) {
 		echo '<script>Button.SetTopicState("old")</script>';
 		// print score
+		echo '<div class="score"></div>';
 	}
 	echo '</div>';
 	

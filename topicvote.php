@@ -17,7 +17,7 @@ require_once "util.php";
 
 //-----------------------------------------------------------------------------
 try {
-	if( !isset( $_POST['serial'] ) {
+	if( !isset( $_POST['serial'] ) ) {
 		exit( 'error' );
 	}
 	
@@ -25,7 +25,7 @@ try {
 	if( $voteval === FALSE ) exit( 'error' );
 	
 	$g_account = LogIn();
-	if( $g_account->serial != serial ) {
+	if( $g_account->serial != $_POST['serial'] ) {
 		exit( 'wrongpage' );
 	}
 	
@@ -80,7 +80,7 @@ try {
 	}
 	
 } catch( Exception $e ) {
-	throw $e; // TODO/DEBUG
+	
 }
 exit( 'error' );
 ?>

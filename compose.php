@@ -12,7 +12,7 @@ $MAXLINES = 15;
 try {
 
 	if( !isset( $_POST['text'] ) ||
-		!isset( $_POST['serial'] ) {
+		!isset( $_POST['serial'] ) ) {
 		
 		exit( 'error' );
 	}
@@ -43,6 +43,8 @@ try {
 			UPDATE Topics SET state=". TopicStates::Live . ",
 			content='$text', time=".time()." WHERE id=".$g_account->page."
 			AND state=".TopicStates::Composing );
+			
+	$sql->safequery( "UPDATE Accounts SET serial=serial+1 WHERE id=". $g_account->id );
 			
 	if( $sql->affected_rows == 0 ) {
 		// their composition slot was deleted because

@@ -37,6 +37,17 @@ class Account {
 }
 
 //-----------------------------------------------------------------------------
+function GetScore( $goods, $bads ) {
+	$total = $goods+$bads;
+	if( $total == 0 ) return 25;
+	$r = 50.0;
+	
+	$a = min( $total / $r, 1.0 );
+	
+	return round(25.0 * (1.0-$a) + ($goods*99/$total) * $a);
+}
+
+//-----------------------------------------------------------------------------
 // compares two entries with values "goods" (good votes) and "bads" (bad votes)
 function ScoreCmp( $a, $b ) {
 	$c = $a['goods'] - $a['bads'];
@@ -52,8 +63,9 @@ function ReadCookieInt( $key ) {
 }
  
 //-----------------------------------------------------------------------------
-function CreateNewAccount( $sql ) {
+function CreateNewAccount( $sql, $xip ) {
 	// this function expects the accounts table to be locked.
+	
 	
 	$password = mt_rand() & 0xFFFFFFF;
 	$sql->safequery(
@@ -64,13 +76,14 @@ function CreateNewAccount( $sql ) {
 	$row = $result->fetch_row();
 	
 	$account = Account::FromArgs( $row[0], $password, 0, 0 );
-	setcookie( "account", $account->id, time() + 60*60*24*30, $apath );
-	setcookie( "password", $account->password, time() + 60*60*24*30, $apath );
+	setcookie( "account", $account->id, time() + 60*60*24*30, $GLOBALS['apath'] );
+	setcookie( "password", $account->password, time() + 60*60*24*30, $GLOBALS['apath'] );
 	return $account;
 }
 
 //-----------------------------------------------------------------------------
 function FindOrCreateAccount() {
+	global $ACCOUNTS_PER_IP;
 	// no account cookie, create a new account or use existing one for IP.
 	$sql = GetSQL();
 	$xip = GetIPHex();
@@ -82,7 +95,7 @@ function FindOrCreateAccount() {
 		
 	if( $result->num_rows < $ACCOUNTS_PER_IP  ) {
 		// create new account
-		return CreateNewAccount( $sql );
+		return CreateNewAccount( $sql, $xip );
 	} else {
 		// use existing account
 		
@@ -97,8 +110,8 @@ function FindOrCreateAccount() {
 		
 		$index = mt_rand( 0, count($choices)-1 );
 		$account = Account::FromAssoc( $choices[$index] );
-		setcookie( "account", $account->id, time() + 60*60*24*30, $apath );
-		setcookie( "password", $account->password, time() + 60*60*24*30, $apath );
+		setcookie( "account", $account->id, time() + 60*60*24*30, $GLOBALS['apath'] );
+		setcookie( "password", $account->password, time() + 60*60*24*30, $GLOBALS['apath'] );
 		return $account;
 	}
 } 
@@ -109,6 +122,8 @@ function LogIn() {
 	if( $accountid == 0 ) {
 		return FindOrCreateAccount();
 	} else {
+	
+		$sql = GetSQL();
 		// try to log in
 		$password = ReadCookieInt( "password" );
 		$result = $sql->safequery( 

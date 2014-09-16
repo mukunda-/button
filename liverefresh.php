@@ -21,7 +21,7 @@ require_once "util.php";
 //-----------------------------------------------------------------------------
 try {
 
-	if( !isset( $_GET['serial'] ) ||
+	if( !isset( $_GET['serial'] ) ) {
 		exit( 'error' );
 	}
 	$lastid = 0;
@@ -86,7 +86,14 @@ try {
 	
 	if( $state == TopicStates::Old ) {
 		// sort by score
-		usort( $output, ScoreCmp );
+		usort( $output, "ScoreCmp" );
+		
+		// filter out shit scores.
+		foreach( $output as $key => $value ) {
+			if( GetScore( $value['goods'], $value['bads'] ) < 0.5 ) {
+				unset( $output[$key] );
+			}
+		}
 	} else if( $state == TopicStates::Live ) {
 		// sort randomly
 		shuffle( $output );

@@ -64,6 +64,6 @@ $sql->safequery(
 		ip VARBINARY(16),
 		page INT NOT NULL,
 		serial INT NOT NULL,
-		INDEX USING BTREE(ip) );
+		INDEX USING BTREE(ip) )" );
  
 ?>

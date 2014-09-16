@@ -69,7 +69,7 @@ function SubmitComposition() {
 				LoadPage( 'error.php?emptycomposition' );
 			} else if( data == 'toolong' ) {
 				LoadPage( 'error.php?toolong' );
-			} else if( data == 'badserial' ) {
+			} else if( data == 'wrongpage' ) {
 				LoadPage( 'error.php?messedup' );
 			} else {
 				RefreshContent(); 
@@ -381,10 +381,11 @@ var LiveRefresh = new function() {
 	
 	function OnAjaxDone( data ) {
 		if( CheckSerial() ) return; 
+		alert(data);
 		if( data == 'error' ) {
 			DequeueNext();
 			return;
-		} else if( data == 'expired' ) {
+		} else if( data == 'expired' || data == 'deleted' ) {
 			m_queue = [];
 			m_refreshing = false;
 			RefreshContent();
@@ -449,10 +450,15 @@ var LiveRefresh = new function() {
 			return;
 		}
 		
+		var post = {
+			serial: g_account_serial,
+			last: g_last_comment };
+			
+		if( g_topic_state == 'old' ) {
+			post.old = 1;
+		}
 	
-		$.get( "liverefresh.php", 
-			{serial: g_account_serial,
-			last: g_last_comment} ) 
+		$.get( "liverefresh.php", post ) 
 		.done( OnAjaxDone )
 		.fail( function() {
 			// try again later
@@ -491,7 +497,7 @@ function VoteTopic( upvote ) {
 	
 	if( upvote ) {
 		vgood.html( '<img src="star.png" alt="good" title="good">' );
-	} else {
+	} else {	
 		vbad.html( '<img src="bad.png" alt="bad" title="bad">' );
 	}
 	vgood.removeClass( "clickable" );

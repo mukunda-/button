@@ -13,7 +13,7 @@ $MAXLINES = 8;
 try {
 	
 	if( !isset( $_POST['text'] ) ||
-			!isset( $_POST['serial'] ) {
+			!isset( $_POST['serial'] ) ) {
 		
 		exit( 'error' );
 	}
