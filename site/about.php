@@ -1,9 +1,4 @@
-<?php
-
-
-echo '<div class="topic nothing" id="topic">';
-
-	?>
+<div class="topic nothing" id="topic">
 	<p>matbox</p>
 	
 	<p>the quest for the legendary matter</p>
@@ -18,14 +13,10 @@ echo '<div class="topic nothing" id="topic">';
 	you may then compose your own matter for analysis.</p>
 	
 	<p>after a while, matter gets old, and bad matter gets buried. old matter
-	cannot be further analysed. if old matter has a score of 99, it is then the legendary matter.</p>
+	cannot be further analysed. if old matter has a score of 99, it is then the legendary matter. </p>
 	
 	<p>there are no rules. everything is anonymous. good luck.</p>
 	
-	<p>by the way, to put an image in your matter, surround an image url in brackets.</p>
+	<p>by the way, to put an image in your matter, surround an image url in brackets. images appear as tiny cells at first, click on them to use your microscope.</p>
 	
-	<?php
-	
-echo '</div>';
-
-?>
+</div>

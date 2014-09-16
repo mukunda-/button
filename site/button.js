@@ -359,7 +359,15 @@ function ScoreRank( a ) {
 	if( a < 90 ) return "rank_good";
 	if( a < 99 ) return "rank_great";
 	return "rank_god";
-	
+}
+//-----------------------------------------------------------------------------
+function ScoreRankName( a ) {
+	if( a < 60 ) return "cancer";
+	if( a < 70 ) return "bad";
+	if( a < 80 ) return "okay";
+	if( a < 90 ) return "good";
+	if( a < 99 ) return "great";
+	return "LEGENDARY";
 }
 
 //-----------------------------------------------------------------------------
@@ -492,7 +500,7 @@ var LiveRefresh = new function() {
 				} else {
 					var html = [];
 					html.push( '<div class="reply" id="comment'+g_num_comments+'">' + entry.content );
-					html.push( '<div class="score '+ ScoreRank(entry.score) +'">' + entry.score + '</div>' );
+					html.push( '<div class="score '+ ScoreRank(entry.score) +'" title="'+ScoreRankName(entry.score)+'">' + entry.score + '</div>' );
 					html.push( '</div>&nbsp;' );
 				}
 				g_num_comments++;
@@ -662,8 +670,8 @@ $( window ).on ( 'beforeunload', function(){
 
 //-----------------------------------------------------------------------------
 $( function() { 
-	LoadPage( 'about.php' );
-	//LoadPage('content.php',-200);
+	//LoadPage( 'about.php' );
+	LoadPage('content.php',-200);
 });
 
 //-----------------------------------------------------------------------------

@@ -378,3 +378,9 @@ function ShowTopic() {
 ShowTopic(); 
 
 ?>
+
+<div class="navigation"><div>prev</div> | <div>next</div></div>
+
+<?php
+
+?>

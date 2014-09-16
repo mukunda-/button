@@ -288,3 +288,20 @@ body {
 	position: relative;
 	top: -1;
 }
+
+.navigation {
+	height: 16px;
+	border-radius: 0px 0px 16px 0px;
+	font-size: 12px;
+	background-color: #e6f8ff;
+	display: inline-block;
+	padding: 4px 12px 7px 5px;
+	position: fixed;
+	left: 0px;
+	top: 0px;
+}
+
+.navigation div {
+	padding: 1px;
+	display: inline-block;
+}
