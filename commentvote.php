@@ -16,7 +16,7 @@ try {
 
 	if( !isset( $_POST['serial'] ) || 
 		!isset( $_POST['comment'] ) ||
-		!isset( $_POST['vote'] ) {
+		!isset( $_POST['vote'] ) ) {
 		
 		exit( 'error' );
 	}

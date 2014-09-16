@@ -215,10 +215,20 @@ try {
 	}
 } catch( Exception $e ) {
 	echo '
-			<div class="topic nothing" id="topic">
+			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
 				something messed up.
 			</div>';
 	die();
+}
+
+function ScoreRank( $a) {
+	if( $a < 60 ) return "rank_cancer";
+	if( $a < 70 ) return "rank_poop";
+	if( $a < 80 ) return "rank_ok";
+	if( $a < 90 ) return "rank_good";
+	if( $a < 99 ) return "rank_great";
+	return "rank_god";
+	
 }
 	
 function ShowTopic() {
@@ -231,7 +241,7 @@ function ShowTopic() {
 	 
 	if( $g_account->page == 0 ) {
 		echo '
-			<div class="topic nothing" id="topic">
+			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
 				nothing to discuss. check again later.
 			</div>';
 		return false;
@@ -241,7 +251,7 @@ function ShowTopic() {
 		$topic = new Topic( $g_account );
 	} catch( Exception $e ) {
 		echo '
-			<div class="topic nothing" id="topic">
+			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
 				something messed up.
 			</div>';
 		die();
@@ -249,7 +259,7 @@ function ShowTopic() {
 	
 	if( !$topic->valid ) {
 		echo '
-			<div class="topic nothing" id="topic">
+			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
 				nothing to discuss. check again later.
 			</div>';
 		return false;
@@ -257,7 +267,7 @@ function ShowTopic() {
 	
 	if( $topic->state == TopicStates::Deleted ) {
 		echo '
-			  <div class="topic nothing" id="topic">
+			  <div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
 			  	  this topic was buried.
 			  </div>';
 		return false;
@@ -303,7 +313,9 @@ function ShowTopic() {
 	} else if( $topic->state == TopicStates::Old ) {
 		echo '<script>Button.SetTopicState("old")</script>';
 		// print score
-		echo '<div class="score"></div>';
+		$score = GetScore($topic->goods,$topic->bads);
+		echo '<div class="score '.ScoreRank($score).'" id="scorediv">'.$score.'</div>';
+		echo '<div class="new" id="newbutton" onclick="Button.CloseOld()"></div>';
 	}
 	echo '</div>';
 	

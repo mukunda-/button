@@ -7,6 +7,8 @@ require_once "util.php";
 $MAXCHARS = 220;
 $MAXLINES = 8;
 
+$WAITTIME = 30;
+
 // reply.php POST { text: reply text, serial: account serial }
 
 //-----------------------------------------------------------------------------
@@ -28,6 +30,7 @@ try {
 		exit( 'expired' );
 	}
 	
+	
 	// sanitize text: 
 	$text = $_POST['text'];
 	$text = str_replace( '[[br]]', "\n", $text );
@@ -41,8 +44,17 @@ try {
 	}
 	
 	$sql = GetSQL();
+	
 	$s_live = TopicStates::Live;
-	$sql->safequery( 'LOCK TABLES Topics READ, Comments WRITE' );
+	$sql->safequery( 'LOCK TABLES Topics READ, Comments WRITE, Accounts WRITE' );
+	
+	$result = $sql->safequery( 'SELECT lastreply FROM Accounts WHERE id='.$g_account->id );
+	$row = $result->fetch_row();
+	if( time() < $row[0] + $WAITTIME ) {
+		$sql->safequery( 'UNLOCK TABLES' );
+		exit( 'pleasewait' );
+	}
+	
 	$result = $sql->safequery( 
 		'SELECT state FROM Topics
 		WHERE id='.$g_account->page );
@@ -72,6 +84,7 @@ try {
 		exit( 'error' );
 	}
 	
+	$sql->safequery( 'UPDATE Accounts SET lastreply='.time().' WHERE id='.$g_account->id );
 	$sql->safequery( 'UNLOCK TABLES' );
 	
 	exit( 'okay.' );

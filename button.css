@@ -29,7 +29,7 @@ body {
 	font-size: 30px;
 
 	max-width: 550px;
-	padding: 24px 48px 24px 48px;
+	padding: 24px 48px 25px 48px;
 	background-color: #e6f8ff;
 	color: #111119;
 	margin:auto;
@@ -53,7 +53,7 @@ body {
 .topic.nothing {
 	background: none;
 	box-shadow: none;
-	
+	cursor: pointer;
 }
 
 .topic .good {
@@ -64,13 +64,36 @@ body {
 	height: 32px; 
 	font-size:6px;
 }
-.topic .bad {
+.topic .bad, .topic .new {
 	position: absolute;
 	right: 12px;
 	top: 4px;
 	width: 32px;
 	height: 32px; 
 	font-size:6px;
+}
+
+.topic .score {
+	position: absolute;
+	left: 12px;
+	top: 4px; 
+	font-size: 23px;
+	font-weight: bold;
+}
+
+.topic .new {
+	
+	background-image: url('new.png');
+	background-position: 0px 0px;
+	cursor: pointer;
+}
+
+.topic .new:hover {
+	background-position: -32px 0px;
+}
+
+.topic .new:active {
+	background-position: -64px 0px;
 }
 
 .clickable {
@@ -157,13 +180,16 @@ body {
 	max-width: 574px;
 	display: inline-block;
 	/*width: 574px;*/
-	padding: 12px 36px 12px 36px;
+	padding: 12px 36px 14px 36px;
 	font-size: 22px;
 	background-color: #e6f8ff;
 	word-wrap:break-word;
 	opacity: 0;
 	transition: opacity 0.5s;
-}/*
+}
+
+
+/*
 .replies .reply.hidden {
 	display:none;
 }*/
@@ -177,7 +203,7 @@ body {
 	resize: none;
 	height:auto;
 	border-bottom: 1px dotted rgba(0,0,0,0.3);
-	min-height:36px;
+	min-height:32px;
 	min-width: 96px;
 	word-wrap:break-word;
     
@@ -192,6 +218,13 @@ body {
 	
 }
 
+.replies .reply .score {
+	font-size: 12px;
+	position: absolute;
+	top: 18px;
+	left: 8px;
+	font-weight: bold;
+}
 .replies .rvote {
 	width: 16px;
 	height: 16px;
@@ -224,4 +257,32 @@ body {
 #content {
 	opacity : 0;
 	transition: opacity 0.5s;
+}
+
+.rank_cancer {
+	color:red;
+}
+
+.rank_poop {
+	color:#8d3e17;
+}
+
+.rank_ok {
+	color: #308c8d;
+}
+
+.rank_good {
+	color: #1bb826;
+}
+
+.rank_great {
+	color: #243bc8;
+}
+.rank_god {
+	color: #e58100;
+}
+
+.topic_text_adjust, .comment_text_adjust {
+	position: relative;
+	top: -1;
 }

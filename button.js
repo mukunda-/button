@@ -20,8 +20,15 @@ var g_num_comments = 0;
 var g_topic_state = "old";
 
 var g_topic_voted = false;
+
+var g_replytime = 0;
   
 //var g_page_serial = 0; // used to catch outdated operations.
+
+//-----------------------------------------------------------------------------
+function GetTime() {
+	return new Date().getTime();
+}
 
 //-----------------------------------------------------------------------------
 // read element text with converted line breaks
@@ -57,7 +64,7 @@ function SubmitComposition() {
 	$.post( "compose.php", 
 		{ text: content, serial: g_account_serial } )
 		.done( function( data ) {
-			alert(data);
+			
 			if( data == 'error' ) {
 				alert( 'couldn\'t post topic.' );
 				g_compose_sending = false; 
@@ -102,7 +109,7 @@ function SubmitComment() {
 						   
 		.done( function( data ) {
 			var reopeninput = false;
-			alert( data );
+			
 			if( data == 'error' ) {
 				reopeninput = true;
 				alert( 'couldn\'t post comment.' );
@@ -125,6 +132,7 @@ function SubmitComment() {
 				
 			} else {
 				
+				g_replytime = GetTime();
 				$( "#replyinputbox" ).addClass( 'fade' ); 
 				$( "#replyinputbox" ).css( 'opacity', 0 ); 
 				$( "#replyinputbox" ).css( 'cursor', 'default' ); 
@@ -145,7 +153,7 @@ function SubmitComment() {
 			ShowSubmit( $( "#replyinput" ) );
 		});
 }
-
+ 
 //-----------------------------------------------------------------------------
 function HideSubmit() {
 	
@@ -196,6 +204,9 @@ function AdjustTop() {
 	
 	$("#goodbutton").css( "top", (height / 2 - 16) + "px" );
 	$("#badbutton").css( "top", (height / 2 - 16) + "px" );
+	
+	$("#scorediv").css( "top", (height / 2 - 16) + "px" );
+	$("#newbutton").css( "top", (height / 2 - 16) + "px" );
 	height += 16; // body margin
 	var margin = ((sh/2)-(height/2));
 	if( margin < 32 ) {
@@ -313,6 +324,29 @@ function RefreshContent() {
 }
 
 //-----------------------------------------------------------------------------
+function CloseOld() {
+	if( g_loading ) return;
+	if( g_topic_state != 'old' ) return;
+	
+	g_loading = true;
+	$.post( "closeold.php", {serial:g_account_serial} )
+		.always( function() {
+			RefreshContent();
+		});
+}
+
+//-----------------------------------------------------------------------------
+function ScoreRank( a ) {
+	if( a < 60 ) return "rank_cancer";
+	if( a < 70 ) return "rank_poop";
+	if( a < 80 ) return "rank_ok";
+	if( a < 90 ) return "rank_good";
+	if( a < 99 ) return "rank_great";
+	return "rank_god";
+	
+}
+
+//-----------------------------------------------------------------------------
 var LiveRefresh = new function() { 
 	var m_this = this;
 	var m_queue = [];
@@ -339,20 +373,30 @@ var LiveRefresh = new function() {
 	
 	function SetAutoRefresh() {
 		CancelAutoRefresh();
-		m_autorefresh_handle = setTimeout( m_this.Refresh, 35*1000 );
+		m_autorefresh_handle = setTimeout( m_this.Refresh, 33*1000 ); 
 	}
 	
 	function ShowCommentReply() {
 		// last function in queue string.
 		var rpi = $( '#replyinputbox' );
-		if( !rpi.hasClass( 'fade' ) ) {
-			setTimeout( function() {
-				if( CheckSerial() ) return; 
-				if( !rpi.hasClass( 'fade' ) ) {
-					rpi.css( "opacity", 1 );
+		setTimeout( function() {
+			if( CheckSerial() ) return; 
+			if( !rpi.hasClass( 'fade' ) ) {
+				rpi.css( "opacity", 1 );
+			} else {
+				if( GetTime() > g_replytime + 2000 ) {
+				
+					rpi.removeClass( 'fade' ); 
+					rpi.css( 'opacity', 1 ); 
+					rpi.css( 'cursor', 'inherit' );
+					g_compose_sending = false;
+					$( "#replyinput" ).attr( 'contentEditable', true ); 
+					$( "#replyinput" ).html( 'discuss...', true ); 
+					$( "#replyinput" ).addClass( 'init' );
+					ShowSubmit( $( "#replyinput" ) );						
 				}
-			}, 500 );
-		}
+			}
+		}, 500 );
 		DequeueNext();
 		return;
 	}
@@ -381,7 +425,7 @@ var LiveRefresh = new function() {
 	
 	function OnAjaxDone( data ) {
 		if( CheckSerial() ) return; 
-		alert(data);
+		
 		if( data == 'error' ) {
 			DequeueNext();
 			return;
@@ -407,33 +451,36 @@ var LiveRefresh = new function() {
 				}
 				
 				if( g_topic_state == "live" ) {
-					var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content;
+					var html = [];
+					html.push( '<div class="reply" id="comment'+g_num_comments+'">' + entry.content );
 					var selected = entry.vote === true ? " selected": "";
-					html += '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="Button.VoteCommentGood('+entry.id+')">';
+					html.push( '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="Button.VoteCommentGood('+entry.id+')">' );
 					if( entry.vote === true ) {
-						html += '<img src="star.png" alt="good" title="good"></div>';
+						html.push( '<img src="star.png" alt="good" title="good"></div>' );
 					} else {
-						html += '<img src="unstar.png" alt="good" title="good"></div>';
+						html.push( '<img src="unstar.png" alt="good" title="good"></div>' );
 					}
 					
 					selected = entry.vote === false ? " selected": "";
-					html += '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="Button.VoteCommentBad('+entry.id+')">';
+					html.push( '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="Button.VoteCommentBad('+entry.id+')">' );
 					if( entry.vote === false ) {
-						html += '<img src="bad.png" alt="bad" title="bad"></div>';
+						html.push( '<img src="bad.png" alt="bad" title="bad"></div>' );
 					} else {
-						html += '<img src="notbad.png" alt="bad" title="bad"></div>';
+						html.push( '<img src="notbad.png" alt="bad" title="bad"></div>' );
 						
 					}
-					html += '</div> ';
+					html.push( '</div> ' );
 					
 					
 				} else {
-					var html = '<div class="reply" id="comment'+g_num_comments+'">' + entry.content + '</div>&nbsp;';
-					
+					var html = [];
+					html.push( '<div class="reply" id="comment'+g_num_comments+'">' + entry.content );
+					html.push( '<div class="score '+ ScoreRank(entry.score) +'">' + entry.score + '</div>' );
+					html.push( '</div>&nbsp;' );
 				}
 				g_num_comments++;
 				
-				$( '#replylist' ).append( html );
+				$( '#replylist' ).append( html.join("") );
 				
 			}
 			ChainFadeComments( startcomment, g_num_comments-1 );
@@ -476,7 +523,7 @@ var LiveRefresh = new function() {
 	}
 	
 	this.Refresh = function() {
-		if( g_topic_state != "live" &&
+		if( g_topic_state != 'live' &&
 			g_topic_state != 'old' ) return;
 		
 		m_queue.push( g_account_serial );
@@ -507,7 +554,7 @@ function VoteTopic( upvote ) {
 		{ serial: g_account_serial,  
 		  vote: upvote ? 'good':'cancer' } )
 		.done( function( data ) {
-		  alert(data);
+		  
 			if( data == 'error' ) {
 				RefreshContent(); 
 			} else if( data == 'good' ) {
@@ -521,7 +568,6 @@ function VoteTopic( upvote ) {
 		})
 		.fail( function(  ) {
 		
-		  alert('fail');
 			g_topic_voted = false;
 			vgood.html( '<img src="unstar.png" alt="good" title="good">' );
 			vbad.html( '<img src="notbad.png" alt="bad" title="bad">' );
@@ -565,7 +611,7 @@ function VoteComment( id, upvote ) {
 	$.post( 'commentvote.php', 
 		{ serial: g_account_serial,
 		  comment: id, 
-		  vote: upvote ? 'good':'cancer' } ) ; 
+		  vote: upvote ? 'good':'cancer' } ).done(function(data){alert(data)}) ; 
 	// ignore result
 	// not really a problem if a few of these votes get missed.
 	
@@ -650,6 +696,12 @@ window.Button.IsLoading = function() {
 	return g_loading;
 }
 
+window.Button.RefreshFromNothing	= function () {
+	if( g_loading ) return;
+	
+	RefreshContent();
+}
+
 window.Button.CompositionKeyPressed = CompositionKeyPressed;
 window.Button.ReplyKeyPressed       = ReplyKeyPressed;
 window.Button.DoLiveRefresh         = LiveRefresh.Refresh;
@@ -659,6 +711,8 @@ window.Button.VoteCommentGood       = VoteCommentGood;
 window.Button.VoteCommentBad        = VoteCommentBad;
 window.Button.VoteTopicGood         = VoteTopicGood;
 window.Button.VoteTopicBad          = VoteTopicBad;
+window.Button.CloseOld				= CloseOld;
+
 
 })()
 

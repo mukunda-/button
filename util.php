@@ -38,6 +38,7 @@ class Account {
 
 //-----------------------------------------------------------------------------
 function GetScore( $goods, $bads ) {
+	
 	$total = $goods+$bads;
 	if( $total == 0 ) return 25;
 	$r = 50.0;
@@ -50,8 +51,19 @@ function GetScore( $goods, $bads ) {
 //-----------------------------------------------------------------------------
 // compares two entries with values "goods" (good votes) and "bads" (bad votes)
 function ScoreCmp( $a, $b ) {
-	$c = $a['goods'] - $a['bads'];
-	$d = $b['goods'] - $b['bads'];
+	
+	$c = GetScore( $a['goods'], $a['bads'] );
+	$d = GetScore( $b['goods'], $b['bads'] );
+	if( $c == $d ) return 0;
+	return ($c>$d) ? -1 : 1;
+}
+
+//-----------------------------------------------------------------------------
+// compares two entries with "score" values set
+function ScoreCmp2( $a, $b ) {
+	
+	$c = $a['score'];
+	$d = $b['score'];
 	if( $c == $d ) return 0;
 	return ($c>$d) ? -1 : 1;
 }
@@ -69,8 +81,8 @@ function CreateNewAccount( $sql, $xip ) {
 	
 	$password = mt_rand() & 0xFFFFFFF;
 	$sql->safequery(
-		"INSERT INTO Accounts (password,ip,page,serial)
-		VALUES ($password,x'$xip',0,0)" );
+		"INSERT INTO Accounts (password,ip)
+		VALUES ($password,x'$xip')" );
 	$sql->safequery( "UNLOCK TABLES" );
 	$result = $sql->safequery( "SELECT LAST_INSERT_ID()" );
 	$row = $result->fetch_row();
@@ -106,12 +118,12 @@ function FindOrCreateAccount() {
 		
 		// this should be above the last loop, but im not sure if it's safe to
 		// read a result after another command is executed.
-		$sql->safequery( "UNLOCK TABLES" );
+		$sql->safequery( 'UNLOCK TABLES' );
 		
 		$index = mt_rand( 0, count($choices)-1 );
 		$account = Account::FromAssoc( $choices[$index] );
-		setcookie( "account", $account->id, time() + 60*60*24*30, $GLOBALS['apath'] );
-		setcookie( "password", $account->password, time() + 60*60*24*30, $GLOBALS['apath'] );
+		setcookie( 'account', $account->id, time() + 60*60*24*30, $GLOBALS['apath'] );
+		setcookie( 'password', $account->password, time() + 60*60*24*30, $GLOBALS['apath'] );
 		return $account;
 	}
 } 
@@ -179,14 +191,12 @@ function FinalizeTopic( $id ) {
 
 //-----------------------------------------------------------------------------
 function CheckTopicExpired2( $id, $goods, $bads, $time ) {
-	$totalvotes = (float)( $goods + $bads );
-	if( $totalvotes == 0 ) $totalvotes=1.0;
-	$score = (float)$goods / $totalvotes;
+	$score = GetScore( $goods, $bads );
 	$removetime = 0; 
 	$delete = false;
 	
-	if( $score < 0.6 ) {
-		// under score 60, delete after 5 minutes
+	if( $score < 0.55 ) {
+		// under score 55, delete after 5 minutes
 		// remove after 5 minutes
 		$removetime = $GLOBALS['BURY_TIME'];
 		$delete = true;

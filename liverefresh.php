@@ -85,15 +85,23 @@ try {
 	}
 	
 	if( $state == TopicStates::Old ) {
-		// sort by score
-		usort( $output, "ScoreCmp" );
-		
-		// filter out shit scores.
+	
 		foreach( $output as $key => $value ) {
-			if( GetScore( $value['goods'], $value['bads'] ) < 0.5 ) {
+			$score = GetScore( $value['goods'], $value['bads'] );
+			if( $score < 50 ) {
+				// filter out shit scores.
 				unset( $output[$key] );
+			} else {
+				// translate goods,bads into final score
+				$output[$key]['score'] = $score;
+				unset( $output[$key]['goods'] );
+				unset( $output[$key]['bads'] );
 			}
 		}
+		
+		// sort by score
+		usort( $output, "ScoreCmp2" );
+		
 	} else if( $state == TopicStates::Live ) {
 		// sort randomly
 		shuffle( $output );

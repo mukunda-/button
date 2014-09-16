@@ -61,9 +61,10 @@ $sql->safequery(
 	"CREATE TABLE IF NOT EXISTS Accounts (
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		password INT NOT NULL,
-		ip VARBINARY(16),
-		page INT NOT NULL,
-		serial INT NOT NULL,
+		ip VARBINARY(16) NOT NULL,
+		page INT NOT NULL DEFAULT 0,
+		serial INT NOT NULL DEFAULT 0,
+		lastreply INT NOT NULL DEFAULT 0,
 		INDEX USING BTREE(ip) )" );
  
 ?>
