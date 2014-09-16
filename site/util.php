@@ -16,6 +16,8 @@ class Account {
 	public $password;
 	public $page;
 	public $serial;
+	public $lastreply;
+	public $lastcompose;
 	
 	public static function FromAssoc( $row ) {
 		$account = new Account();
@@ -23,15 +25,19 @@ class Account {
 		$account->password = $row['password'];
 		$account->page = $row['page'];
 		$account->serial = $row['serial'];
+		$account->lastreply = $row['lastreply'];
+		$account->lastcompose = $row['lastcompose'];
 		return $account;
 	}
 	
-	public static function FromArgs( $id, $password, $page, $serial ) {
+	public static function FromArgs( $id, $password, $page, $serial, $lastreply, $lastcompose ) {
 		$account = new Account();
 		$account->id = $id;
 		$account->password = $password;
 		$account->page = $page;
 		$account->serial = $serial;
+		$account->lastreply = $lastreply;
+		$account->lastcompose = $lastcompose;
 		return $account;
 	}
 }
@@ -87,7 +93,7 @@ function CreateNewAccount( $sql, $xip ) {
 	$result = $sql->safequery( "SELECT LAST_INSERT_ID()" );
 	$row = $result->fetch_row();
 	
-	$account = Account::FromArgs( $row[0], $password, 0, 0 );
+	$account = Account::FromArgs( $row[0], $password, 0, 0, 0, 0 );
 	setcookie( "account", $account->id, time() + 60*60*24*30, $GLOBALS['apath'] );
 	setcookie( "password", $account->password, time() + 60*60*24*30, $GLOBALS['apath'] );
 	return $account;
@@ -103,7 +109,7 @@ function FindOrCreateAccount() {
 	$result = $sql->safequery( "LOCK TABLE Accounts WRITE" );
 	
 	$result = $sql->safequery( 
-		"SELECT id, password, page, serial FROM Accounts WHERE ip=x'$xip'" );
+		"SELECT id, password, page, serial, lastreply, lastcompose FROM Accounts WHERE ip=x'$xip'" );
 		
 	if( $result->num_rows < $ACCOUNTS_PER_IP  ) {
 		// create new account
@@ -139,14 +145,14 @@ function LogIn() {
 		// try to log in
 		$password = ReadCookieInt( "password" );
 		$result = $sql->safequery( 
-			"SELECT page, serial FROM Accounts 
+			"SELECT page, serial, lastreply, lastcompose FROM Accounts 
 			WHERE id=$accountid AND password=$password" );
 		
 		$row = $result->fetch_row();
 		if( !$row ) {
 			return FindOrCreateAccount();
 		}
-		return Account::FromArgs( $accountid, $password, $row[0], $row[1] );
+		return Account::FromArgs( $accountid, $password, $row[0], $row[1], $row[2], $row[3] );
 	}
 }
 
@@ -256,7 +262,7 @@ function GetVoteValue( $source ) {
 function LogException( $note, $e ) {
 	if( $GLOBALS['ERRLOG'] ) {
 		
-		file_put_contents( "err.log", $note . " -- ". $e->getMessage() . "\n", FILE_APPEND );
+		file_put_contents( "err.log", '[' . strftime('%x %H:%M:%S') . " $note] " . print_r( $e, true ) . "\n", FILE_APPEND );
 	}
 }
 

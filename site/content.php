@@ -120,7 +120,8 @@ function GetNewPage() {
 	global $SLOTS, $g_account, $apath;
 	
 	$sql = GetSQL();
-	$result = $sql->safequery( "LOCK TABLES Topics WRITE, TopicVotes READ" );
+	$result = $sql->safequery( 
+		"LOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE" );
 	 
 	$result = $sql->safequery( 
 		'SELECT id,state,time,vote,goods,bads FROM Topics
@@ -131,21 +132,31 @@ function GetNewPage() {
 		LIMIT '.$SLOTS );
 	
 	if( $result->num_rows < $SLOTS ) {
-		// chance to make a new 
-		if( mt_rand( 0, $SLOTS-1 ) >= $result->num_rows ) {
+	
+		if( time() > ($g_account->lastcompose + $GLOBALS['COMPOSE_DELAY']) ) {
+			// chance to make a new 
+			//if( mt_rand( 0, $SLOTS-1 ) >= $result->num_rows ) {
+			
 			// start new composition 
 			$sql->safequery( 
 				'INSERT INTO Topics ( account,state,goods,bads,time ) VALUES 
 				( '.$g_account->id.', '.TopicStates::Composing.', 0, 0, '.time().')' );
 	
-			$sql->safequery( 'UNLOCK TABLES' );
 			$result = $sql->safequery( 'SELECT LAST_INSERT_ID()' );
 			$row = $result->fetch_row();
 			$g_account->page = $row[0];
 			$g_account->serial++;
-			SaveAccount( $g_account, $g_account->page, $g_account->serial );
+			$g_account->lastcompose = time();
+			$sql->safequery( 
+				'UPDATE Accounts SET page='.$g_account->page.', 
+				serial='.$g_account->serial.', lastcompose='.$g_account->lastcompose.' 
+				WHERE id='.$g_account->id );
+			//SaveAccount( $g_account, $g_account->page, $g_account->serial );
 			
+			$sql->safequery( 'UNLOCK TABLES' );
 			return;
+			
+			//}
 		}
 	}
 	$sql->safequery( 'UNLOCK TABLES' );
@@ -242,7 +253,7 @@ function ShowTopic() {
 	if( $g_account->page == 0 ) {
 		echo '
 			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
-				nothing to discuss. check again later.
+				nothing to discuss. come back later.
 			</div>';
 		return false;
 	}
@@ -261,7 +272,7 @@ function ShowTopic() {
 	if( !$topic->valid ) {
 		echo '
 			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
-				nothing to discuss. check again later.
+				nothing to discuss. come back later.
 			</div>';
 		return false;
 	}

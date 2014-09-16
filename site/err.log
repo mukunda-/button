@@ -1,0 +1,162 @@
+getnewpage -- SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ' 
+					serial=, lastcompose=1410845689 
+					WHERE id=' at line 1
+getnewpage -- SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ' 
+					serial=, lastcompose=1410845709 
+					WHERE id=' at line 1
+[ getnewpage] Exception Object
+(
+    [message:protected] => SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'LeOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE' at line 1
+    [string:Exception:private] => 
+    [code:protected] => 0
+    [file:protected] => Q:\web\button\site\sql.php
+    [line:protected] => 17
+    [trace:Exception:private] => Array
+        (
+            [0] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 123
+                    [function] => safequery
+                    [class] => sql_wrapper
+                    [type] => ->
+                    [args] => Array
+                        (
+                            [0] => LeOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 219
+                    [function] => GetNewPage
+                    [args] => Array
+                        (
+                        )
+
+                )
+
+        )
+
+    [previous:Exception:private] => 
+)
+
+[ getnewpage] Exception Object
+(
+    [message:protected] => SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'LeOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE' at line 1
+    [string:Exception:private] => 
+    [code:protected] => 0
+    [file:protected] => Q:\web\button\site\sql.php
+    [line:protected] => 17
+    [trace:Exception:private] => Array
+        (
+            [0] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 123
+                    [function] => safequery
+                    [class] => sql_wrapper
+                    [type] => ->
+                    [args] => Array
+                        (
+                            [0] => LeOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 219
+                    [function] => GetNewPage
+                    [args] => Array
+                        (
+                        )
+
+                )
+
+        )
+
+    [previous:Exception:private] => 
+)
+
+[09/16/14  getnewpage] Exception Object
+(
+    [message:protected] => SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'LeOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE' at line 1
+    [string:Exception:private] => 
+    [code:protected] => 0
+    [file:protected] => Q:\web\button\site\sql.php
+    [line:protected] => 17
+    [trace:Exception:private] => Array
+        (
+            [0] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 123
+                    [function] => safequery
+                    [class] => sql_wrapper
+                    [type] => ->
+                    [args] => Array
+                        (
+                            [0] => LeOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 219
+                    [function] => GetNewPage
+                    [args] => Array
+                        (
+                        )
+
+                )
+
+        )
+
+    [previous:Exception:private] => 
+)
+
+[09/16/14 07:46:58 getnewpage] Exception Object
+(
+    [message:protected] => SQL Error: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'LeOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE' at line 1
+    [string:Exception:private] => 
+    [code:protected] => 0
+    [file:protected] => Q:\web\button\site\sql.php
+    [line:protected] => 17
+    [trace:Exception:private] => Array
+        (
+            [0] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 123
+                    [function] => safequery
+                    [class] => sql_wrapper
+                    [type] => ->
+                    [args] => Array
+                        (
+                            [0] => LeOCK TABLES Topics WRITE, TopicVotes READ, Accounts WRITE
+                        )
+
+                )
+
+            [1] => Array
+                (
+                    [file] => Q:\web\button\site\content.php
+                    [line] => 219
+                    [function] => GetNewPage
+                    [args] => Array
+                        (
+                        )
+
+                )
+
+        )
+
+    [previous:Exception:private] => 
+)
+
