@@ -64,7 +64,8 @@ try {
 	$sql->safequery( 'UNLOCK TABLES' );
 	exit( 'okay.' );
 	
-} catch ( Exception $e ) {
+} catch ( Exception $e ) {	
+	LogException( "commentvote", $e );
 	
 }
 

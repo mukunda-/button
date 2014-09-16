@@ -177,9 +177,7 @@ function GetNewPage() {
 			}
 			
 			
-			$choices[] = array( 
-					"id" =>$row['id'], 
-					"ch" => $row['challenge'] );
+			$choices[] = $row['id']; 
 			
 		}
 	}
@@ -194,7 +192,7 @@ function GetNewPage() {
 	
 	$choice = $choices[mt_rand( 0, count($choices)-1 )];
 	
-	$g_account->page = $choice['id'];
+	$g_account->page = $choice;
 	$g_account->serial++;
 	SaveAccount( $g_account, $g_account->page, $g_account->serial );
 }
@@ -218,6 +216,8 @@ try {
 			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
 				something messed up.
 			</div>';
+	LogException( "getnewpage", $e );
+	
 	die();
 }
 
@@ -254,6 +254,7 @@ function ShowTopic() {
 			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
 				something messed up.
 			</div>';
+		LogException( "readtopic", $e );
 		die();
 	}
 	
@@ -308,7 +309,6 @@ function ShowTopic() {
 			echo '<div class="good clickable" id="goodbutton" onclick="Button.VoteTopicGood()"><img src="unstar.png" alt="good" title="good"></div>';
 			echo '<div class="bad clickable" id="badbutton" onclick="Button.VoteTopicBad()"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
 		}
-		 
 		
 	} else if( $topic->state == TopicStates::Old ) {
 		echo '<script>Button.SetTopicState("old")</script>';
@@ -326,7 +326,7 @@ function ShowTopic() {
 	
 	if( $topic->state == TopicStates::Live ) {
 		echo '<div class="reply" id="replyinputbox">
-				 <div class="replyinput init" id="replyinput" contenteditable="true">discuss...</div>
+				 <div class="replyinput init" id="replyinput" contenteditable="true"></div>
 			  </div>';
 		
 		?>

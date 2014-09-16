@@ -90,6 +90,7 @@ try {
 	exit( 'okay.' );
 	
 } catch ( Exception $e ) {
+	LogException( "reply", $e );
 	
 }
 exit( 'error' );

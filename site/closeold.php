@@ -22,6 +22,7 @@ try {
 
 	exit('okay.');
 } catch( Exception $e ) {
+	LogException( "closeold", $e );
 }
 
 exit('error');

@@ -80,6 +80,7 @@ try {
 	}
 	
 } catch( Exception $e ) {
+	LogException( "topicvote", $e );
 	
 }
 exit( 'error' );

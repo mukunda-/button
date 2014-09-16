@@ -25,6 +25,18 @@ var g_replytime = 0;
   
 //var g_page_serial = 0; // used to catch outdated operations.
 
+var images = new Array();
+function preload() {
+	for (i = 0; i < preload.arguments.length; i++) {
+		images[i] = new Image();
+		images[i].src = preload.arguments[i];
+	}
+}
+preload(
+	"bad.png",
+	"star.png"
+);
+
 //-----------------------------------------------------------------------------
 function GetTime() {
 	return new Date().getTime();
@@ -247,15 +259,19 @@ function PageLoadFailedContent() {
 
 //-----------------------------------------------------------------------------
 function FadeIn( content ) {	
+	// global initialization here:
+	g_last_comment = 0;
+	g_compose_sending = false;
+	g_num_replies = 0;
+	g_topic_voted = false;
  
 	output = $('#content');
 	$('#content').html( content );
 	
-	// global initialization here:
-	g_compose_sending = false;
-	g_last_comment = 0;
-	g_num_replies = 0;
-	g_topic_voted = false;
+	// replace image tags in topic
+	if( g_topic_state == 'live' || g_topic_state == 'old' ) {
+		
+	}
 	
 	AdjustSize();
 	output.css( 'opacity', 1 ); // fade in
@@ -391,9 +407,10 @@ var LiveRefresh = new function() {
 					rpi.css( 'cursor', 'inherit' );
 					g_compose_sending = false;
 					$( "#replyinput" ).attr( 'contentEditable', true ); 
-					$( "#replyinput" ).html( 'discuss...', true ); 
+					//$( "#replyinput" ).html( 'discuss...' ); 
+					$( "#replyinput" ).html( '' ); 
 					$( "#replyinput" ).addClass( 'init' );
-					ShowSubmit( $( "#replyinput" ) );						
+					//ShowSubmit( $( "#replyinput" ) );						
 				}
 			}
 		}, 500 );
@@ -611,7 +628,7 @@ function VoteComment( id, upvote ) {
 	$.post( 'commentvote.php', 
 		{ serial: g_account_serial,
 		  comment: id, 
-		  vote: upvote ? 'good':'cancer' } ).done(function(data){alert(data)}) ; 
+		  vote: upvote ? 'good':'cancer' } );
 	// ignore result
 	// not really a problem if a few of these votes get missed.
 	
@@ -656,8 +673,7 @@ $(document).bind('mousedown', function(e) {
 //-----------------------------------------------------------------------------
 $(document).bind('keydown', function(e) {
 	if( g_loading_fading_out ) return false;
-	
-/* DEBUG BYPASS
+	 
     if( e.which === 116 ) {
 		if( g_loading ) return false;
 		LoadPage( 'content.php', 500 );
@@ -667,10 +683,11 @@ $(document).bind('keydown', function(e) {
 		if( g_loading ) return false;
 		LoadPage('content.php');
 		return false;
-    }*/
+    } /*
+	
 	if( e.which === 32 ) { // DEBUG
 		refreshComments();
-	}
+	}*/
 });
 
 // ****************************************************************************

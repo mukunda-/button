@@ -111,6 +111,7 @@ try {
 	exit();
 	
 } catch ( Exception $e ) {
+	LogException( "liverefresh", $e );
 
 }
 exit( 'error' );

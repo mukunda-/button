@@ -41,7 +41,7 @@ function GetScore( $goods, $bads ) {
 	
 	$total = $goods+$bads;
 	if( $total == 0 ) return 25;
-	$r = 50.0;
+	$r = (float)$GLOBALS['SCORE_RAMP_CONSTANT'];
 	
 	$a = min( $total / $r, 1.0 );
 	
@@ -195,7 +195,7 @@ function CheckTopicExpired2( $id, $goods, $bads, $time ) {
 	$removetime = 0; 
 	$delete = false;
 	
-	if( $score < 0.55 ) {
+	if( $score < 55 ) {
 		// under score 55, delete after 5 minutes
 		// remove after 5 minutes
 		$removetime = $GLOBALS['BURY_TIME'];
@@ -223,6 +223,7 @@ function CheckTopicExpired2( $id, $goods, $bads, $time ) {
 	return FALSE;
 }
 
+//-----------------------------------------------------------------------------
 function CheckTopicExpired( $id ) {
 	$sql = GetSQL();
 	$result =$sql->safequery( 
@@ -240,6 +241,7 @@ function CheckTopicExpired( $id ) {
 	return CheckTopicExpired2( $id, $row[1], $row[2], $row[3] );
 }
 
+//-----------------------------------------------------------------------------
 function GetVoteValue( $source ) {
 	if( $source == "good" ) {
 		return "1";
@@ -247,6 +249,14 @@ function GetVoteValue( $source ) {
 		return "0";
 	} else {
 		return FALSE;
+	}
+}
+
+//-----------------------------------------------------------------------------
+function LogException( $note, $e ) {
+	if( $GLOBALS['ERRLOG'] ) {
+		
+		file_put_contents( "err.log", $note . " -- ". $e->getMessage() . "\n", FILE_APPEND );
 	}
 }
 

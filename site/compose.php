@@ -54,6 +54,7 @@ try {
 	exit( 'okay.' );
 	
 } catch ( Exception $e ) {	
+	LogException( "compose", $e );
 	
 }
 exit( 'error' );
