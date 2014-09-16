@@ -10,7 +10,7 @@
 	<script src="jquery-1.11.0.min.js"></script>
 	<script src="jquery.mousewheel.min.js"></script>
 	<script src="button.js"></script>
-	<title>hot topic</title>
+	<title>Anonymous Social Media Platform (TM)</title>
 	
 </head>
 <body>	
