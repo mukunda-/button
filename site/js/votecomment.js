@@ -1,4 +1,10 @@
+// ==== matbox ====
+// Copyright 2014 Mukunda Johnson
+
 (function() { window.matbox = window.matbox || {};
+
+// VoteComment module
+// for submitting votes on comments
 
 matbox.VoteComment = this;
 

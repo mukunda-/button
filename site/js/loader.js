@@ -1,4 +1,10 @@
+// ==== matbox ====
+// Copyright 2014 Mukunda Johnson
+
 (function() { window.matbox = window.matbox || {};
+
+// Loader
+// module for loading pages in place
 
 matbox.Loader = this;
 

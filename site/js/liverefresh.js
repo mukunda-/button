@@ -1,4 +1,10 @@
+// ==== matbox ====
+// Copyright 2014 Mukunda Johnson
+
 (function() { window.matbox = window.matbox || {};
+
+// LiveRefresh module
+// for refreshing a topic page dynamically
 
 matbox.LiveRefresh = this;
 

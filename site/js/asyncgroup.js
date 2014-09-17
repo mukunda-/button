@@ -1,3 +1,7 @@
+// AsyncGroup module
+// 
+// Copyright 2014 Mukunda Johnson
+
 (function() { 
 
 /** ---------------------------------------------------------------------------

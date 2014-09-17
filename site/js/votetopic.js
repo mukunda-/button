@@ -1,4 +1,10 @@
+// ==== matbox ====
+// Copyright 2014 Mukunda Johnson
+
 (function() { window.matbox = window.matbox || {};
+
+// VoteTopic
+// module for submitting votes on topics/matter
 
 var m_topic_voted = false;
 

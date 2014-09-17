@@ -1,3 +1,5 @@
+// ==== matbox ====
+// Copyright 2014 Mukunda Johnson
 
 function isSet( a ) {
 	return (typeof a) !== 'undefined';
@@ -86,13 +88,13 @@ function SubmitComposition() {
 				$( "#composition" ).attr( 'contentEditable', true ); 
 				ShowSubmit( $("#composition") );
 			} else if( data == 'expired' ) {
-				LoadPage( 'error.php?expired' );
+				matbox.Loader.Load( 'error.php?expired' );
 			} else if( data == 'empty' ) {
-				LoadPage( 'error.php?emptycomposition' );
+				matbox.Loader.Load( 'error.php?emptycomposition' );
 			} else if( data == 'toolong' ) {
-				LoadPage( 'error.php?toolong' );
+				matbox.Loader.Load( 'error.php?toolong' );
 			} else if( data == 'wrongpage' ) {
-				LoadPage( 'error.php?messedup' );
+				matbox.Loader.Load( 'error.php?messedup' );
 			} else {
 				RefreshContent(); 
 			}
@@ -101,7 +103,7 @@ function SubmitComposition() {
 			if( handle.ag_cancelled ) return;
 			
 			alert( 'couldn\'t post topic.' );
-			 
+			
 			m_compose_sending = false;
 			$( "#replyinput" ).attr( 'contentEditable', true ); 
 			ShowSubmit( $("#composition") );
@@ -110,16 +112,22 @@ function SubmitComposition() {
 
 //-----------------------------------------------------------------------------
 function SubmitComment() {
-	if( g_loading ) return false;
-	if( g_compose_sending ) return false;
+	if( matbox.Loader.IsLoading() ) return false;
+	if( m_compose_sending ) return false;
 	if(  $('#replyinput').text().trim() == "" ) {
 		return false;
 	} 
-	var content = ReadText( $('#replyinput') );  
+	var content = ReadText( $('#replyinput') );
 	
-	g_compose_sending = true;
+	m_compose_sending = true;
 	$("#replyinput").attr( 'contentEditable', false );  
 	HideSubmit();
+	
+	function reopeninput() {
+		m_compose_sending = false;
+		$( "#replyinput" ).attr( 'contentEditable', true ); 
+		ShowSubmit( $( "#replyinput" ) );
+	}
 		
 	m_timeouts.AddAjax( 
 		$.post( "reply.php", 
@@ -129,46 +137,40 @@ function SubmitComment() {
 			var reopeninput = false;
 			
 			if( data == 'error' ) {
-				reopeninput = true;
 				alert( 'couldn\'t post comment.' );
-			} else if( data == 'badserial' ) {
+				reopeninput();
+			} else if( data == 'wrongpage' ) {
 				alert( 'something messed up.' );
 				RefreshContent();
-			} else if( data == 'expired' ) {
-				
+			} else if( data == 'expired' ) { 
 				alert( 'too late.' );
 				RefreshContent(); 
 			} else if( data == 'tooshort' ) {
-				reopeninput = true;
 				alert( 'too short.' );
+				reopeninput();
 			} else if( data == 'toolong' ) {
-				reopeninput = true;
 				alert( 'too long.' );
+				reopeninput();
 			} else if( data == 'pleasewait' ) {
-				reopeninput = true;
 				alert( 'please wait a while first.' );
+				reopeninput();
 				
 			} else {
 				
-				g_replytime = GetTime();
+				m_replytime = GetTime();
 				$( "#replyinputbox" ).addClass( 'fade' ); 
 				$( "#replyinputbox" ).css( 'opacity', 0 ); 
 				$( "#replyinputbox" ).css( 'cursor', 'default' ); 
-				setTimeout( LiveRefresh.Refresh, 500 );
+				m_timeouts.Set( LiveRefresh.Refresh, 500 );
 			}
 			
-			if( reopeninput ) {
-				g_compose_sending = false;
-				$( "#replyinput" ).attr( 'contentEditable', true ); 
-				ShowSubmit( $( "#replyinput" ) );
-			}
 		})
-		.fail( function() {
+		.fail( function( handle ) {
+			if( handle.ag_cancelled ) return;
+			
 			alert( 'couldn\'t post comment.' );
 			
-			g_compose_sending = false;
-			$( "#replyinput" ).attr( 'contentEditable', true ); 
-			ShowSubmit( $( "#replyinput" ) );
+			reopeninput();
 		});
 }
  
@@ -188,8 +190,7 @@ function ShowSubmit( parent ) {
 		submit.css( 'opacity', 1.0 );
 		submit.css( 'cursor', 'pointer' );
 	} else {
-		HideSubmit();
-		
+		HideSubmit(); 
 	}
 }
 
@@ -201,8 +202,7 @@ matbox.ResetReplyInput = function() {
 		rpi.css( "opacity", 1 );
 	} else {
 		if( GetTime() > matbox.GetLastReplyTime() + 10000 ) {
-		
-			matbox.ShowComposeI
+		 
 			rpi.removeClass( 'fade' ); 
 			rpi.css( 'opacity', 1 ); 
 			rpi.css( 'cursor', 'inherit' );
@@ -218,14 +218,14 @@ matbox.ResetReplyInput = function() {
 function CompositionKeyPressed() {
 	
 	AdjustTop();
-	if( !g_compose_sending ) {
+	if( !m_compose_sending ) {
 		ShowSubmit( $("#composition") ); 
 	}
 }
 
 //-----------------------------------------------------------------------------
 function ReplyKeyPressed() { 
-	if( !g_compose_sending ) {
+	if( !m_compose_sending ) {
 		ShowSubmit( $("#replyinput") ); 
 	} 
 }
@@ -276,11 +276,11 @@ function AdjustSize() {
 
 //-----------------------------------------------------------------------------
 function CloseOld() {
-	if( g_loading ) return;
-	if( g_topic_state != 'old' ) return;
+	if( m_loading ) return;
+	if( m_topic_state != 'old' ) return;
 	
 	g_loading = true;
-	$.post( "closeold.php", {serial:g_account_serial} )
+	m_timeouts.AddAjax( $.post( "closeold.php", { page: m_page } ) )
 		.always( function() {
 			RefreshContent();
 		});
@@ -295,6 +295,7 @@ function ScoreRank( a ) {
 	if( a < 99 ) return "rank_great";
 	return "rank_god";
 }
+
 //-----------------------------------------------------------------------------
 function ScoreRankName( a ) {
 	if( a < 60 ) return "cancer";
@@ -317,68 +318,74 @@ function InitializePreLoad() {
 function InitializePostLoad() {
 	
 	// replace image tags in topic
-	if( g_topic_state == 'live' || g_topic_state == 'old' ) {
+	if( m_page_state == 'live' || m_page_state == 'old' ) {
 		// do live refresh?
 	}
 }
  
+/******************************************************************************
+ * Global events
+ *****************************************************************************/
+ 
 //-----------------------------------------------------------------------------
 $(window).bind("mousewheel",function(ev, delta) {
+	// make the mousewheel scroll the page 
+	// (doesn't work normally when scrollbar is hidden.)
 	var scrollTop = $(window).scrollTop()-Math.round(delta)*51;
 	$(window).scrollTop(scrollTop-Math.round(delta)*51); 
 }); 
 
 //-----------------------------------------------------------------------------
 $(window).resize( function () { 
+	// adjust the margins when the window is resized
 	AdjustSize();
 });
 
 //-----------------------------------------------------------------------------
 $( window ).on ( 'beforeunload', function(){ 
-   $('#content').css( 'opacity', 0 );
-});
-
-//-----------------------------------------------------------------------------
-$( function() { 
-	//LoadPage( 'about.php' );
-	LoadPage('content.php',-200);
-});
+	// make the page fade out if the user presses refresh
+	// it might not fade out all the way before the page reloads but this
+	// is the best we can do.
+	$('#content').css( 'opacity', 0 );
+}); 
 
 //-----------------------------------------------------------------------------
 $(document).bind('mousedown', function(e) {
-	if( g_loading_fading_out ) return false;
+	// cancel mouse events when the page is fading out
+	if( matbox.Loader.IsLoading() ) return false;
 });
  
 //-----------------------------------------------------------------------------
 $(document).bind('keydown', function(e) {
-	if( g_loading_fading_out ) return false;
+	// cancel keyboard events when the page is fading out
+	if( matbox.Loader.IsLoading() ) return false;
 	 
-    if( e.which === 116 ) {
-		if( g_loading ) return false;
-		LoadPage( 'content.php', 500 );
+    if( (e.which === 116) || (e.which === 82 && e.ctrlKey) ) {
+		// catch F5 and Ctrl+R reloads, make it do an internal reload.
+		
+		//if( g_loading ) return false; (already checked from the outside)
+		
+		matbox.Loader.RefreshContent();
+		
 		return false;
     }
-    if( e.which === 82 && e.ctrlKey ) {
-		if( g_loading ) return false;
-		LoadPage('content.php');
-		return false;
-    } /*
-	
-	if( e.which === 32 ) { // DEBUG
+    /*
+	// debug: reload comments on space for stress testing
+	if( e.which === 32 ) {
 		refreshComments();
 	}*/
 });
 
+//-----------------------------------------------------------------------------
+$( function() { 
+	// load the content when ready
+	matbox.Loader.Load( 'content.php', -200 );
+});
 
 // ****************************************************************************
 // exposure
 // ****************************************************************************
-
-
-//matbox.SetSerial = function( serial ) {
-//	g_account_serial = serial;
-//} 
-
+ 
 matbox.SetTopic = function( page, state ) {
 	g_topic_page = page;
 	g_topic_state = state;
