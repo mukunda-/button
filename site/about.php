@@ -13,7 +13,7 @@
 	you may then compose your own matter for analysis.</p>
 	
 	<p>matter gets old after a while. old matter cannot be further analysed, 
-	and old matter that is bad gets buried. 
+	and bad matter gets buried. 
 	if matter ends up with a rating of 99, 
 	it is then the Legendary Matter. my people have been in search of the 
 	Legendary Matter for the last 400,000 years.</p>

@@ -1,5 +1,6 @@
 
 (function() {
+"strict mode";
 
 console.log('hi');
 
@@ -14,7 +15,7 @@ var g_account_serial = 0; // the serial is used to
 // ignore actions when the user is actually on
 // a different page (most likely because they
 // opened the site in another tab)
-// --deprecated, just use page.
+// --deprecated, just use PAGE.
 
 var g_topic_page = 0; // what page we are on, old or not
 
@@ -701,6 +702,7 @@ $(document).bind('keydown', function(e) {
 		refreshComments();
 	}*/
 });
+
 
 // ****************************************************************************
 // exposure

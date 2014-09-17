@@ -269,7 +269,8 @@ function GetVoteValue( $source ) {
 function LogException( $note, $e ) {
 	if( $GLOBALS['ERRLOG'] ) {
 		
-		file_put_contents( "err.log", '[' . strftime('%x %H:%M:%S') . " $note] " . print_r( $e, true ) . "\n", FILE_APPEND );
+		if( !file_exists("logs") ) mkdir("logs", 0700);
+		file_put_contents( "logs/err.log", '[' . strftime('%x %H:%M:%S') . " $note] " . print_r( $e, true ) . "\n", FILE_APPEND );
 	}
 }
 

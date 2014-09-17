@@ -390,8 +390,33 @@ ShowTopic();
 
 ?>
 
-<div class="navspace"></div>
-<div class="navigation"><div class="tab">archive</div></div>
+<div id="navspace">
+<div id="navigation"><div class="tab">archive</div></div>
+</div>
+<script>
+
+	$("#navspace").hover( function() {
+		$("#navigation").addClass( "show" );
+	},
+	function() {
+		$("#navigation").removeClass( "show" );
+	});
+	/*
+	$("#navspace").mouseover( function() {
+		$("#navigation").addClass( "show" );
+	});
+	$("#navspace").mouseout( function() {
+		$("#navigation").removeClass( "show" );
+	});
+
+	$("#navigation").mouseover( function() {
+		$( this ).addClass( "show" );
+	}); 
+	$("#navigation").mouseout( function() {
+		$( this ).removeClass( "show" );
+	});*/
+
+</script>
 
 <?php
 

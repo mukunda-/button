@@ -10,7 +10,7 @@
 	<script src="jquery-1.11.0.min.js"></script>
 	<script src="jquery.mousewheel.min.js"></script>
 	<script src="button.js"></script>
-	<title>matbox - the matter analyser</title>
+	<title>matbox - the matter machine</title>
 	
 </head>
 <body>	
@@ -18,6 +18,6 @@
 	<div id="content">
 		
 	</div>
-	 
+	
 </body>
 </html>
