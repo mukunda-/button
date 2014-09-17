@@ -14,6 +14,9 @@ var g_account_serial = 0; // the serial is used to
 // ignore actions when the user is actually on
 // a different page (most likely because they
 // opened the site in another tab)
+// --deprecated, just use page.
+
+var g_topic_page = 0; // what page we are on, old or not
 
 var g_last_comment = 0;
 var g_num_comments = 0;
@@ -634,7 +637,7 @@ function VoteComment( id, upvote ) {
 	}
 	
 	$.post( 'commentvote.php', 
-		{ serial: g_account_serial,
+		{ page: g_topic_page,
 		  comment: id, 
 		  vote: upvote ? 'good':'cancer' } );
 	// ignore result
@@ -714,7 +717,8 @@ window.Button.SetPage = function( page, challenge ) {
 	g_challenge = challenge;
 }*/
 
-window.Button.SetTopicState = function( state ) {
+window.Button.SetTopic = function( page, state ) {
+	g_topic_page = page;
 	g_topic_state = state;
 }
 

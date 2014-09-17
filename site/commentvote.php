@@ -1,7 +1,7 @@
 <?php
 
 // commentvote.php POST
-//  serial = account serial
+//  page = page the comment is on
 //  comment = comment id
 //  vote = "good" or "cancer"
 
@@ -14,7 +14,7 @@ require_once "util.php";
 //-----------------------------------------------------------------------------
 try {
 
-	if( !isset( $_POST['serial'] ) || 
+	if( !isset( $_POST['page'] ) || 
 		!isset( $_POST['comment'] ) ||
 		!isset( $_POST['vote'] ) ) {
 		
@@ -27,13 +27,14 @@ try {
 	if( $comment == 0 ) exit( 'error' );
 	
 	$g_account = LogIn();
-	if( $g_account->serial != $_POST['serial'] ) {
+	if( $g_account->page != $_POST['page'] ) {
 		exit( 'error' );
 	}
-	 
+	
 	$sql = GetSQL();
 	$sql->safequery( 
 		'LOCK TABLES Topics READ, Comments READ, CommentVotes WRITE' );
+		
 	$result = $sql->safequery( 
 		'SELECT 1 FROM Topics
 		WHERE id='.$g_account->page.' 

@@ -10,7 +10,7 @@ body {
 	display:none;
 }
 
-.topic, .options>div, .replies .reply, .submit {
+.topic, .options>div, .replies .reply, .submit, .navigation {
 	
 	border-radius: 16px;
 	box-shadow: 4px 6px 7px rgba(0,0,0,0.04);
@@ -289,19 +289,56 @@ body {
 	top: -1;
 }
 
-.navigation {
-	height: 16px;
-	border-radius: 0px 0px 16px 0px;
-	font-size: 12px;
-	background-color: #e6f8ff;
-	display: inline-block;
-	padding: 4px 12px 7px 5px;
+.navwrap {
 	position: fixed;
-	left: 0px;
-	top: 0px;
+	left:0px;
+	bottom: 0px;
+	height: 36px;
+	width: 100%;
+	background-color: red;
 }
 
-.navigation div {
-	padding: 1px;
+.navwrap:hover  + .navigation {
+	background-color:blue;
+}
+
+.navigation {
+	font-size: 16px;
+	font-weight: bold;
+	
+	display: block;
+	padding: 5px 12px 7px 9px;
+	position: fixed;
+	left: 0px;
+	bottom: 0px;
+	text-align:center;
+	
+	color: #111119;
+	transition: bottom 0.5s;
+}
+
+.navigation .tab {
+	border-radius: 16px 16px 0px 0px;
+	padding: 8px 3px;
 	display: inline-block;
+	background-color: #e6f8ff;
+	cursor:pointer;
+}
+
+.navigation .divider {
+	margin-left: 7px;
+	width: 7px;	
+	height: 22px;
+	vertical-align:bottom;
+	border-left: 1px solid #111119;
+	display: inline-block;
+}
+
+.navigation .tab:hover {
+	color: #555;
+	text-decoration: underline;
+}
+
+.navigation .tab:active {
+	background-color: #999;
 }

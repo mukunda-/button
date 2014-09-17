@@ -232,7 +232,8 @@ try {
 	die();
 }
 
-function ScoreRank( $a) {
+//-----------------------------------------------------------------------------
+function ScoreRank( $a ) {
 	if( $a < 60 ) return "rank_cancer";
 	if( $a < 70 ) return "rank_poop";
 	if( $a < 80 ) return "rank_ok";
@@ -241,13 +242,23 @@ function ScoreRank( $a) {
 	return "rank_god";
 	
 }
+
+//-----------------------------------------------------------------------------
+function ScoreRankName( $a ) {
+	if( $a < 60 ) return "cancer";
+	if( $a < 70 ) return "bad";
+	if( $a < 80 ) return "okay";
+	if( $a < 90 ) return "good";
+	if( $a < 99 ) return "great";
+	return "LEGENDARY";
+}
 	
 function ShowTopic() {
 	global $g_account;
 	
 	echo '<script>';
 	echo 'Button.SetSerial( '.$g_account->serial.' );';
-	echo 'Button.SetTopicState("none");';
+	echo 'Button.SetTopic( '.$g_account->page.', "none");';
 	echo '</script>';
 	 
 	if( $g_account->page == 0 ) {
@@ -309,7 +320,7 @@ function ShowTopic() {
 	echo '<div class="topic" id="topic">';
 	echo $topic->content;
 	if( $topic->state == TopicStates::Live ) {
-		echo '<script>Button.SetTopicState("live")</script>';
+		echo '<script>Button.SetTopic( '.$topic->id.', "live")</script>';
 		if( $topic->vote === true ) {
 			echo '<div class="good" id="goodbutton"><img src="star.png" alt="good" title="good"></div>';
 			echo '<div class="bad" id="badbutton"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
@@ -322,10 +333,10 @@ function ShowTopic() {
 		}
 		
 	} else if( $topic->state == TopicStates::Old ) {
-		echo '<script>Button.SetTopicState("old")</script>';
+		echo '<script>Button.SetTopic( '.$topic->id.',"old")</script>';
 		// print score
 		$score = GetScore($topic->goods,$topic->bads);
-		echo '<div class="score '.ScoreRank($score).'" id="scorediv">'.$score.'</div>';
+		echo '<div class="score '.ScoreRank($score).'" id="scorediv" title="'.ScoreRankName($score).'">'.$score.'</div>';
 		echo '<div class="new" id="newbutton" onclick="Button.CloseOld()"></div>';
 	}
 	echo '</div>';
@@ -379,7 +390,8 @@ ShowTopic();
 
 ?>
 
-<div class="navigation"><div>prev</div> | <div>next</div></div>
+<div class="navspace"></div>
+<div class="navigation"><div class="tab">archive</div></div>
 
 <?php
 
