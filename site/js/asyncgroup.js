@@ -4,6 +4,8 @@
  * AsyncGroup class
  *
  * Handles grouping and cancelling of asynchronous methods.
+ *
+ * @author mukunda
  */
 function AsyncGroup() {
 	this.m_next_id = 0;
@@ -91,8 +93,8 @@ AsyncGroup.prototype.AddAjax = function( handle ) {
  * Abort an AJAX request.
  *  
  * @param handle jqXHR handle, must be added with AddAjax first.
- * @return   true if the request was aborted, false if the request was already
- *           aborted. 
+ * @return       true if the request was aborted, false if the request 
+ *               was already aborted. 
  */
 AsyncGroup.prototype.CancelAjax = function( handle ) {
 	if( handle.ag_cancelled == false ) {

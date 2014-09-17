@@ -2,37 +2,41 @@
 
 matbox.Loader = this;
 
-var FADE_OUT_TIME = 500;
-var FADE_IN_TIME = 500;
+var FADE_OUT_TIME = 500; // not the actual fadeout time (set in css)
+var FADE_IN_TIME = 500;  // only used to control timeout delays
 
-var m_loading = false;
-var m_fading_out = false;
-var m_page_content = null;
+var m_loading = false;  // loading is set while a new page is being loaded
+						// this includes the time between the call to Load
+						// until the loaded content is initialized and
+						// fading in
+						
+var m_fading_out = false;  // used to coordinate fadeout and ajax result
+var m_page_content = null; //
 
+// error content when the ajax fails:
 var PAGE_LOAD_FAILED_CONTENT = 
 	'<div class="topic nothing" id="topic">'+
 		'something messed up.'+
 	'</div><!-- (the page failed to load.) -->';
-	
-//-----------------------------------------------------------------------------	
+	 
+/** ---------------------------------------------------------------------------
+ * Set the page content and fade in.
+ *
+ * @param content Content to insert into #content.
+ *
+ */
 function FadeIn( content ) {	
 	// global initialization here:
-	LiveRefresh.Reset();
 	matbox.InitializePreLoad();
 	
 	output = $('#content');
 	$('#content').html( content );
 	
 	matbox.InitializePostLoad();
-	
+	m_loading = false;
 	
 	AdjustSize();
 	output.css( 'opacity', 1 ); // fade in
-	setTimeout(
-		function() {
-			m_loading = false;
-		}, FADE_IN_TIME );
-		
 }
 
 /** ---------------------------------------------------------------------------
@@ -51,7 +55,7 @@ this.Load = function( url, delay ) {
 	
 	m_loading = true;
 	
-	LiveRefresh.Reset();//CancelAutoRefresh();
+	LiveRefresh.Reset(); 
 	
 	output = $( '#content' );
 	output.css( 'opacity', 0 ); // fade out
@@ -74,7 +78,7 @@ this.Load = function( url, delay ) {
 	
 	$.get( url )
 		.done( function(data) {
-		
+			
 			if( g_loading_fading_out ) {
 				m_page_content = data;
 			} else {
@@ -97,6 +101,15 @@ this.Load = function( url, delay ) {
  */
 this.RefreshContent = function() {
 	LoadPage( 'content.php' );
+}
+
+/** ---------------------------------------------------------------------------
+ * Check if a page is loading
+ *
+ * @return true if the page is fading out or otherwise busy loading.
+ */
+this.IsLoading = function() {
+	return m_loading;
 }
 
 })();

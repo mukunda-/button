@@ -48,24 +48,7 @@ function ShowCommentReply() {
 	m_timeout_group.Set( function() { 
 		matbox.ResetReplyInput();
 		
-		// move to matbox main {{{{{{
-		var rpi = $( '#replyinputbox' );
-		if( !rpi.hasClass( 'fade' ) ) {
-			rpi.css( "opacity", 1 );
-		} else {
-			if( GetTime() > matbox.GetLastReplyTime() + 10000 ) {
-			
-				matbox.ShowComposeI
-				rpi.removeClass( 'fade' ); 
-				rpi.css( 'opacity', 1 ); 
-				rpi.css( 'cursor', 'inherit' );
-				g_compose_sending = false;
-				$( "#replyinput" ).attr( 'contentEditable', true );  
-				$( "#replyinput" ).html( '' ); 
-				$( "#replyinput" ).addClass( 'init' ); 				
-			}
-		}
-		//}}}}}}}
+		
 	}, 500 );
 	DequeueNext();
 	return;
@@ -111,7 +94,7 @@ function OnAjaxDone( data ) {
 		data = JSON.parse( data );
 		
 		var startcomment = m_num_comments;
-		var topicstate = matbox.GetTopicState();
+		var topicstate = matbox.GetPageState();
 		
 		for( var i = 0; i < data.length; i++ ) {
 			
@@ -160,7 +143,7 @@ function OnAjaxDone( data ) {
 
 //-----------------------------------------------------------------------------
 function DoRefresh() {
-	var topicstate = matbox.GetTopicState();
+	var topicstate = matbox.GetPageState();
 	if( topicstate == 'live' ) {
 		SetAutoRefresh();
 	} else if( topicstate != 'old' ) {
@@ -192,7 +175,7 @@ function DoRefresh() {
  
 //-----------------------------------------------------------------------------
 function Refresh() {
-	var topicstate = matbox.GetTopicState();
+	var topicstate = matbox.GetPageState();
 	if( topicstate != 'live' &&
 		topicstate != 'old' ) return;
 	

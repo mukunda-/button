@@ -7,22 +7,24 @@ function isSet( a ) {
  
 console.log('hi');
 
-var g_compose_sending = false;
-var g_account_serial = 0; // the serial is used to
+////var g_account_serial = 0; // the serial is used to
 // ignore actions when the user is actually on
 // a different page (most likely because they
 // opened the site in another tab)
 // --deprecated, just use PAGE.
 
-var g_topic_page = 0; // what page we are on, old or not
+var m_compose_sending = false; // if we are busy trying to submit a 
+								// topic or reply
+								
+var m_page = 0; // what page we are on, old or not
+var m_page_state = "none";	// state of the page we are viewing
+ 
+var m_replytime = 0;		// last comment reply time, for helping determine
+							// if we should show the reply box again
+							// on the next auto refresh
 
-var g_last_comment = 0;
-var g_num_comments = 0;
-var g_topic_state = "old";
-
-var g_topic_voted = false;
-
-var g_replytime = 0;
+var m_timeouts = AsyncGroup.Create(); // async operations that should be
+									  // cancelled when a new page loads
   
 //var g_page_serial = 0; // used to catch outdated operations.
 
@@ -59,26 +61,28 @@ function ReadText( element ) {
 
 //-----------------------------------------------------------------------------
 function SubmitComposition() {
-	if( g_loading ) return false;
+	if( matbox.Loader.IsLoading() ) return false;
 	if( g_compose_sending ) return false;
 	if(  $('#composition').text().trim() == "" ) {
 		return false;
 	}
 	
-	var content = ReadText( $('#composition') );  
+	var content = ReadText( $('#composition') );
 	
-	g_compose_sending = true;
+	m_compose_sending = true;
 	$("#composition").attr('contentEditable', false);
 	//$("#composition").removeClass('composing');
 	HideSubmit(); 
+	
+	m_timeouts.AddAjax( 
+		$.post( "compose.php", 
+			{ text: content, page: m_page } ))
 			
-	$.post( "compose.php", 
-		{ text: content, serial: g_account_serial } )
 		.done( function( data ) {
 			
 			if( data == 'error' ) {
 				alert( 'couldn\'t post topic.' );
-				g_compose_sending = false; 
+				m_compose_sending = false; 
 				$( "#composition" ).attr( 'contentEditable', true ); 
 				ShowSubmit( $("#composition") );
 			} else if( data == 'expired' ) {
@@ -93,10 +97,12 @@ function SubmitComposition() {
 				RefreshContent(); 
 			}
 		})
-		.fail( function() {
+		.fail( function( handle ) {
+			if( handle.ag_cancelled ) return;
+			
 			alert( 'couldn\'t post topic.' );
 			 
-			g_compose_sending = false;
+			m_compose_sending = false;
 			$( "#replyinput" ).attr( 'contentEditable', true ); 
 			ShowSubmit( $("#composition") );
 		});
@@ -114,9 +120,10 @@ function SubmitComment() {
 	g_compose_sending = true;
 	$("#replyinput").attr( 'contentEditable', false );  
 	HideSubmit();
-			
-	$.post( "reply.php", { text: content, 
-	                       serial: g_account_serial } )
+		
+	m_timeouts.AddAjax( 
+		$.post( "reply.php", 
+			{ text: content, page: g_page } ))
 						   
 		.done( function( data ) {
 			var reopeninput = false;
@@ -187,6 +194,27 @@ function ShowSubmit( parent ) {
 }
 
 //-----------------------------------------------------------------------------
+matbox.ResetReplyInput = function() {
+
+	var rpi = $( '#replyinputbox' );
+	if( !rpi.hasClass( 'fade' ) ) {
+		rpi.css( "opacity", 1 );
+	} else {
+		if( GetTime() > matbox.GetLastReplyTime() + 10000 ) {
+		
+			matbox.ShowComposeI
+			rpi.removeClass( 'fade' ); 
+			rpi.css( 'opacity', 1 ); 
+			rpi.css( 'cursor', 'inherit' );
+			m_compose_sending = false;
+			$( "#replyinput" ).attr( 'contentEditable', true );  
+			$( "#replyinput" ).html( '' ); 
+			$( "#replyinput" ).addClass( 'init' ); 				
+		}
+	}
+}
+
+//-----------------------------------------------------------------------------
 function CompositionKeyPressed() {
 	
 	AdjustTop();
@@ -207,8 +235,7 @@ function AdjustTop() {
 	var poop = $('#topic');
 	var height = poop.height() 
 		+ parseInt(poop.css('padding-top'))
-		+ parseInt(poop.css('padding-bottom'))
-		;
+		+ parseInt(poop.css('padding-bottom'));
 	var sh = $( window ).height();
 	
 	$("#goodbutton").css( "top", (height / 2 - 16) + "px" );
@@ -277,19 +304,21 @@ function ScoreRankName( a ) {
 	if( a < 99 ) return "great";
 	return "LEGENDARY";
 }
- 
+
+//-----------------------------------------------------------------------------
 function InitializePreLoad() {
-	g_last_comment = 0;
-	g_compose_sending = false;
-	g_num_replies = 0;
-	g_topic_voted = false;
+	LiveRefresh.Reset();
+	m_compose_sending = false; 
+	matbox.ResetTopicVoted();
+	m_timeouts.ClearAll();
 }
 
+//-----------------------------------------------------------------------------
 function InitializePostLoad() {
 	
 	// replace image tags in topic
 	if( g_topic_state == 'live' || g_topic_state == 'old' ) {
-		
+		// do live refresh?
 	}
 }
  
@@ -346,32 +375,36 @@ $(document).bind('keydown', function(e) {
 // ****************************************************************************
 
 
-window.matbox.SetSerial = function( serial ) {
-	g_account_serial = serial;
-} 
+//matbox.SetSerial = function( serial ) {
+//	g_account_serial = serial;
+//} 
 
-window.matbox.SetTopic = function( page, state ) {
+matbox.SetTopic = function( page, state ) {
 	g_topic_page = page;
 	g_topic_state = state;
 }
 
-window.matbox.IsLoading = function() {
-	return g_loading;
+matbox.GetPage = function() {
+	return g_topic_page;
 }
 
-window.matbox.RefreshFromNothing = function () {
-	if( g_loading ) return;
-	
-	RefreshContent();
+matbox.GetPageState = function() {
+	return g_topic_state;
 }
 
-window.matbox.CompositionKeyPressed = CompositionKeyPressed;
-window.matbox.ReplyKeyPressed       = ReplyKeyPressed;
-window.matbox.DoLiveRefresh         = LiveRefresh.Refresh;
-window.matbox.SubmitComposition     = SubmitComposition;
-window.matbox.SubmitComment         = SubmitComment;
-window.matbox.CloseOld				= CloseOld;
+window.matbox.RefreshFromNothing = function () { 
+	matbox.Loader.RefreshContent();
+}
 
+matbox.CompositionKeyPressed = CompositionKeyPressed;
+matbox.ReplyKeyPressed       = ReplyKeyPressed;
+matbox.DoLiveRefresh         = LiveRefresh.Refresh;
+matbox.SubmitComposition     = SubmitComposition;
+matbox.SubmitComment         = SubmitComment;
+matbox.CloseOld				 = CloseOld;
+
+matbox.InitializePreLoad     = InitializePreLoad;
+matbox.InitializePostLoad    = InitializePostLoad;
 
 })();
 
