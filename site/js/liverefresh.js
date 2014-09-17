@@ -95,6 +95,7 @@ function ChainFadeComments( start, end ) {
 
 //-----------------------------------------------------------------------------
 function OnAjaxDone( data ) { 
+	if( handle.ag_cancelled ) return;
 	if( data == 'error' ) {
 		DequeueNext();
 		return;
@@ -176,15 +177,17 @@ function DoRefresh() {
 		get.old = 1;
 	}
 
-	m_timeout_group.AddAjax( $.get( "liverefresh.php", get ) );
-	.done( OnAjaxDone )
-	.fail( function( jqXHR, textStatus ) {
-		if( textStatus == "abort" ) return;
-		
-		// try again.
-		DequeueNext();
-		return;
-	});
+	var ajax = $.get( "liverefresh.php", get )
+		.done( OnAjaxDone );
+		.fail( function( handle ) {
+			if( handle.ag_cancelled ) return;
+			
+			// try again.
+			DequeueNext();
+			return;
+		});
+	m_timeout_group.AddAjax( ajax );
+	
 }
  
 //-----------------------------------------------------------------------------
@@ -203,7 +206,7 @@ function Refresh() {
 function Reset() {
 
 	CancelAutoRefresh();
-	m_queue = [];
+	m_queued = 0;
 	m_refreshing = false;
 	m_last_comment = 0;
 	m_num_comments = 0;

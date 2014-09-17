@@ -26,7 +26,7 @@ function VoteComment( id, upvote ) {
 	}
 	
 	$.post( 'commentvote.php', 
-		{ page: g_topic_page,
+		{ page: matbox.GetPage(),
 		  comment: id, 
 		  vote: upvote ? 'good':'cancer' } );
 		  

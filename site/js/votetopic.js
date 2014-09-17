@@ -1,25 +1,27 @@
 (function() { window.matbox = window.matbox || {};
 
+var m_topic_voted = false;
+
 function VoteTopic( upvote ) {
-	if( g_topic_voted ) return;
-	g_topic_voted = true;
+	if( m_topic_voted ) return;
+	m_topic_voted = true;
 	
 	var vgood = $("#goodbutton");
 	var vbad = $("#badbutton");
 	
 	if( upvote ) {
 		vgood.html( '<img src="star.png" alt="good" title="good">' );
-	} else {	
+	} else {
 		vbad.html( '<img src="bad.png" alt="bad" title="bad">' );
 	}
 	vgood.removeClass( "clickable" );
 	vbad.removeClass( "clickable" );
 	
 	$.post( 'topicvote.php', 
-		{ serial: g_account_serial,  
+		{ serial: matbox.GetPage(),  
 		  vote: upvote ? 'good':'cancer' } )
 		.done( function( data ) {
-		  
+			
 			if( data == 'error' ) {
 				RefreshContent(); 
 			} else if( data == 'good' ) {
@@ -33,7 +35,7 @@ function VoteTopic( upvote ) {
 		})
 		.fail( function(  ) {
 		
-			g_topic_voted = false;
+			m_topic_voted = false;
 			vgood.html( '<img src="unstar.png" alt="good" title="good">' );
 			vbad.html( '<img src="notbad.png" alt="bad" title="bad">' );
 			
@@ -59,6 +61,10 @@ matbox.VoteTopicGood = function() {
  */
 matbox.VoteTopicBad = function() {
 	VoteTopic( false );
+}
+
+matbox.ResetTopicVoted = function() {
+	m_topic_voted = false;
 }
 
 })();

@@ -1,15 +1,12 @@
 
-(function() {
-"strict mode";
+function isSet( a ) {
+	return (typeof a) !== 'undefined';
+}
 
+(function() { window.matbox = window.matbox || {};
+ 
 console.log('hi');
 
-var FADE_OUT_TIME = 500; 
-var FADE_IN_TIME = 500;
-
-var g_loading = false;
-var g_loading_fading_out = false;
-var g_loading_page_content = null;
 var g_compose_sending = false;
 var g_account_serial = 0; // the serial is used to
 // ignore actions when the user is actually on
@@ -29,17 +26,15 @@ var g_replytime = 0;
   
 //var g_page_serial = 0; // used to catch outdated operations.
 
+//-----------------------------------------------------------------------------
 var images = new Array();
-function preload() {
+(function() {
+	// preload images
 	for (i = 0; i < preload.arguments.length; i++) {
 		images[i] = new Image();
 		images[i].src = preload.arguments[i];
 	}
-}
-preload(
-	"bad.png",
-	"star.png"
-);
+})();
 
 //-----------------------------------------------------------------------------
 function GetTime() {
@@ -201,12 +196,10 @@ function CompositionKeyPressed() {
 }
 
 //-----------------------------------------------------------------------------
-function ReplyKeyPressed() {
-
+function ReplyKeyPressed() { 
 	if( !g_compose_sending ) {
 		ShowSubmit( $("#replyinput") ); 
-	}
-	 
+	} 
 }
 
 //-----------------------------------------------------------------------------
@@ -283,6 +276,21 @@ function ScoreRankName( a ) {
 	if( a < 90 ) return "good";
 	if( a < 99 ) return "great";
 	return "LEGENDARY";
+}
+ 
+function InitializePreLoad() {
+	g_last_comment = 0;
+	g_compose_sending = false;
+	g_num_replies = 0;
+	g_topic_voted = false;
+}
+
+function InitializePostLoad() {
+	
+	// replace image tags in topic
+	if( g_topic_state == 'live' || g_topic_state == 'old' ) {
+		
+	}
 }
  
 //-----------------------------------------------------------------------------

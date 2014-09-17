@@ -11,13 +11,6 @@ function AsyncGroup() {
 	this.m_ajax = {};
 }
 
-//-----------------------------------------------------------------------------
-AsyncGroup.prototype.GetNextID = function() {
-	var id = 'h' + this.m_next_id;
-	this.m_next_id++;
-	return id;
-}
-
 /** ---------------------------------------------------------------------------
  * Set a new timeout.
  *
@@ -26,7 +19,7 @@ AsyncGroup.prototype.GetNextID = function() {
  * @return        ID of timeout, which can be used with Clear(...)
  */
 AsyncGroup.prototype.Set = function( handler, delay ) {
-	var id = GetNextID();
+	var id = ++this.m_next_id;
 	
 	var group = this;
 	this.m_handles[id] = setTimeout( function() {
@@ -64,48 +57,70 @@ AsyncGroup.prototype.ClearAll = function() {
     }
 	this.m_handles = {};
 	for( var id in this.m_ajax ) {
+		this.m_ajax[id].ag_cancelled = true;
 		this.m_ajax[id].abort();
     }
 	this.m_ajax = {};
 }
 
 /** ---------------------------------------------------------------------------
- * Add an ajax handle to this group.
+ * Add an jQuery AJAX handle to this group.
  *
  * Any active handles added to the group will be aborted by CancelAll.
  *
- * Failure handlers should check for aborted status and cancel their operation
- * accordingly.
+ * Check for jqXHR.ag_cancelled in your failure handlers to determine if a
+ * request was cancelled.
  *
  * @param handle jqXHR object.
- * @return       ID of ajax request
+ * @return       handle (for chaining)
  */
 AsyncGroup.prototype.AddAjax = function( handle ) {
-	var id = GetNextID();
+	var id = ++this.m_next_id;
+	handle.ag_id = id;
+	handle.ag_cancelled = false;
 	this.m_ajax[id] = handle;
 	
 	handle.always( function() {
-		RemoveAjax( id );
+		RemoveAjax( handle );
 	});
 	
 	return handle;
 }
 
 /** ---------------------------------------------------------------------------
- * Remove an ajax ID from this group.
+ * Abort an AJAX request.
  *  
- * @param id ID returned from AddAjax
- * @return   true if the id was removed, false if the ajax request already
- *           finished or doesn't exist.
+ * @param handle jqXHR handle, must be added with AddAjax first.
+ * @return   true if the request was aborted, false if the request was already
+ *           aborted. 
  */
-AsyncGroup.prototype.RemoveAjax = function( id ) {
-	if( this.m_ajax.hasOwnProperty( id ) ) {
-		this.m_ajax[id].abort(); 
-		delete this.m_ajax[id];
+AsyncGroup.prototype.CancelAjax = function( handle ) {
+	if( handle.ag_cancelled == false ) {
+		handle.ag_cancelled = true;
+		handle.abort();
 		return true;
 	}
 	return false;
 }
+
+/** ---------------------------------------------------------------------------
+ * Remove an ajax handle from this group.
+ *  
+ * @param handle jqXHR handle
+ * @return       true if the id was removed, false on failure.
+ */
+AsyncGroup.prototype.RemoveAjax = function( handle ) {
+	if( !handle.hasOwnProperty( 'ag_id' ) ) return false;
+	var id = handle.ag_id;
+	if( this.m_ajax.hasOwnProperty( id ) ) {
+		delete this.m_ajax[id];
+		delete handle.ag_id;
+		return true;
+	}
+	return false;
+}
+
+window.AsyncGroup = {};
 
 /** ---------------------------------------------------------------------------
  * [global] Create a new AsyncGroup.
