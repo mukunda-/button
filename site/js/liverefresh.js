@@ -24,7 +24,7 @@ function DequeueNext() {
 		m_refreshing = false;
 		return;
 	}*/
-	if( m_queued== 0 ) {
+	if( m_queued == 0 ) {
 		m_refreshing = false;
 		return;
 	}
@@ -84,7 +84,7 @@ function ChainFadeComments( start, end ) {
 
 //-----------------------------------------------------------------------------
 function OnAjaxDone( data ) { 
-
+	
 	if( data == 'error' ) {
 		DequeueNext();
 		return;
@@ -114,7 +114,7 @@ function OnAjaxDone( data ) {
 				var html = [];
 				html.push( '<div class="reply" id="comment'+m_num_comments+'">' + entry.content );
 				var selected = entry.vote === true ? " selected": "";
-				html.push( '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="Button.VoteCommentGood('+entry.id+')">' );
+				html.push( '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="matbox.VoteComment.Good('+entry.id+')">' );
 				if( entry.vote === true ) {
 					html.push( '<img src="star.png" alt="good" title="good"></div>' );
 				} else {
@@ -122,7 +122,7 @@ function OnAjaxDone( data ) {
 				}
 				
 				selected = entry.vote === false ? " selected": "";
-				html.push( '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="Button.VoteCommentBad('+entry.id+')">' );
+				html.push( '<div class="rvote rbad '+selected+'" id="votebad'+entry.id+'" onclick="matbox.VoteComment.Bad('+entry.id+')">' );
 				if( entry.vote === false ) {
 					html.push( '<img src="bad.png" alt="bad" title="bad"></div>' );
 				} else {

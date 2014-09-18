@@ -28,6 +28,15 @@ var m_replytime = 0;		// last comment reply time, for helping determine
 var m_timeouts = AsyncGroup.Create(); // async operations that should be
 									  // cancelled when a new page loads
   
+var m_browsing_archive = false; // this is set to true if the user enters
+                                // the archive
+								// this is NOT set to true if the user
+								// is coming from the outside with an
+								// archive link, ONLY set when the user
+								// actually presses the archive button
+								// and this is unset when the user presses
+								// the "new" button
+								
 //var g_page_serial = 0; // used to catch outdated operations.
 
 //-----------------------------------------------------------------------------
@@ -166,7 +175,7 @@ function SubmitComment() {
 				$( "#replyinputbox" ).addClass( 'fade' ); 
 				$( "#replyinputbox" ).css( 'opacity', 0 ); 
 				$( "#replyinputbox" ).css( 'cursor', 'default' ); 
-				m_timeouts.Set( LiveRefresh.Refresh, 500 );
+				m_timeouts.Set( matbox.LiveRefresh.Refresh, 500 );
 			}
 			
 		})
@@ -206,7 +215,7 @@ matbox.ResetReplyInput = function() {
 	if( !rpi.hasClass( 'fade' ) ) {
 		rpi.css( "opacity", 1 );
 	} else {
-		if( GetTime() > matbox.GetLastReplyTime() + 10000 ) {
+		if( GetTime() > m_replytime + 10000 ) {
 		 
 			rpi.removeClass( 'fade' ); 
 			rpi.css( 'opacity', 1 ); 

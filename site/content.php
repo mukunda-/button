@@ -3,28 +3,7 @@
 require_once "sql.php";
 require_once "config.php";
 require_once "util.php";
- /*
-//-----------------------------------------------------------------------------
-class Comment {
-	public $id;
-	public $content;
-	public $goods;
-	public $bads;
-	public $vote; // true, false, or NULL
-	public $time;
-	
-	public function __construct( $row ) {
-		// create from SQL row
-		
-		$this->id = $row['id'];
-		$this->content = $row['content'];
-		$this->goods = $row['goods'];
-		$this->bads = $row['bads'];
-0		$this->time = $row['time'];
-		$this->vote = $row['vote'];
-	}
-}*/
-
+  
 //-----------------------------------------------------------------------------
 class Topic {
 	public $id;
@@ -38,8 +17,8 @@ class Topic {
 	public $time;
 	public $valid;
 	
-	public function __construct( $account ) {
-		$this->id = $account->page;
+	public function __construct( $page, $account ) {
+		$this->id = $page;
 		$this->valid = false;
 		
 		$sql = GetSQL();
@@ -51,6 +30,11 @@ class Topic {
 		$row = $result->fetch_assoc();
 		if( $row === FALSE ) return; 
 		$state = $row['state'];
+		if( $state == TopicStates::Live || $state == TopicStates::Composing ) {
+			if( $page != $account->page ) {
+				return;
+			}
+		}
 		$this->state = $state;
 		$this->accountid = $row['account'];
 		$this->content = $row['content'];
@@ -64,11 +48,11 @@ class Topic {
 
 
 //-----------------------------------------------------------------------------
-function SaveAccount( $account, $page, $serial ) {
+function SaveAccount( $account, $page ) {
 	$sql = GetSQL(); 
 	$sql->safequery( 
-		'UPDATE Accounts SET page='.$page.', 
-		serial='.$serial.' WHERE id='.$account->id );
+		'UPDATE Accounts SET page='.$page.'
+		WHERE id='.$account->id );
 }
 
 //-----------------------------------------------------------------------------
@@ -91,7 +75,7 @@ function IsPageValid( $account ) {
 	}
 	// TODO make sure they get a new topic on the next refresh.
 	if( $row['state'] == TopicStates::Deleted ) {
-		SaveAccount( $account, 0, $account->serial+1 );
+		SaveAccount( $account, 0 );
 		return true;
 	}
 	if( $row['state'] == TopicStates::Composing && time() >= ($row['time'] + $GLOBALS['COMPOSE_TIMEOUT'] ) ) {
@@ -106,7 +90,7 @@ function IsPageValid( $account ) {
 		if( $result ) {
 			if( $result == 1 ) {
 				// deleted. choose new topic on next refresh.
-				SaveAccount( $account, 0, $account->serial+1 );
+				SaveAccount( $account, 0 );
 			}
 			return true;
 		}
@@ -144,14 +128,12 @@ function GetNewPage() {
 	
 			$result = $sql->safequery( 'SELECT LAST_INSERT_ID()' );
 			$row = $result->fetch_row();
-			$g_account->page = $row[0];
-			$g_account->serial++;
+			$g_account->page = $row[0]; 
 			$g_account->lastcompose = time();
 			$sql->safequery( 
 				'UPDATE Accounts SET page='.$g_account->page.', 
-				serial='.$g_account->serial.', lastcompose='.$g_account->lastcompose.' 
-				WHERE id='.$g_account->id );
-			//SaveAccount( $g_account, $g_account->page, $g_account->serial );
+				lastcompose='.$g_account->lastcompose.' 
+				WHERE id='.$g_account->id ); 
 			
 			$sql->safequery( 'UNLOCK TABLES' );
 			return;
@@ -195,32 +177,42 @@ function GetNewPage() {
 	
 	if( empty( $choices ) ) { 
 		
-		$g_account->page = 0;
-		$g_account->serial++;
-		SaveAccount( $g_account, 0, $g_account->serial );
+		$g_account->page = 0; 
+		SaveAccount( $g_account, 0 );
 		return;
 	}
 	
 	$choice = $choices[mt_rand( 0, count($choices)-1 )];
 	
-	$g_account->page = $choice;
-	$g_account->serial++;
-	SaveAccount( $g_account, $g_account->page, $g_account->serial );
+	$g_account->page = $choice; 
+	SaveAccount( $g_account, $g_account->page );
 }
+
+$g_get_page = 0;
 
 try {
 	$g_account = LogIn();
-
-	if( !IsPageValid( $g_account ) ) {
-		$g_account->page = 0;
+	
+	if( isset( $_GET['page'] ) ) {
+		$g_get_page = intval( $_GET['page'] );
 	}
-
-	if( $g_account->page == 0 ) {
-		// try to find a new page
+	
+	if( $g_get_page == $g_account->page ) {
+		$g_get_page = 0;
+	}
+	
+	if( $g_get_page == 0 ) {
+		if( !IsPageValid( $g_account ) ) {
+			$g_account->page = 0;
+		}
 		
-		GetNewPage();
-		// at this point mypage is valid
-		// and 0 is valid which means "no page available."
+		if( $g_account->page == 0 ) {
+			// try to find a new page
+			
+			GetNewPage();
+			// at this point mypage is valid
+			// and 0 is valid which means "no page available."
+		}
 	}
 } catch( Exception $e ) {
 	echo '
@@ -255,14 +247,17 @@ function ScoreRankName( $a ) {
 }
 	
 function ShowTopic() {
-	global $g_account;
+	global $g_account, $g_get_page;
+	
+	$page = $g_get_page ? $g_account->page : $g_get_page;
 	
 	echo '<script>';
-	//echo 'Button.SetSerial( '.$g_account->serial.' );';
-	echo 'matbox.SetPage( '.$g_account->page.', "none");';
-	echo '</script>';
 	 
-	if( $g_account->page == 0 ) {
+	echo 'matbox.SetPage( '.$page.', "none");';
+	echo '</script>';
+	
+	
+	if( $page == 0 ) {
 		?>
 			<div class="topic nothing" id="topic">
 				no new matter.
@@ -276,7 +271,7 @@ function ShowTopic() {
 	}
 	
 	try {
-		$topic = new Topic( $g_account );
+		$topic = new Topic( $page, $g_account );
 	} catch( Exception $e ) {
 		?>
 			<div class="topic nothing clickable" id="topic" onclick="matbox.Loader.RefreshContent()">
@@ -289,12 +284,8 @@ function ShowTopic() {
 	
 	if( !$topic->valid ) {
 		?>
-			<div class="topic nothing" id="topic">
-				no new matter.
-			</div>
-			<div class="panel">
-				<div class="button" onclick="matbox.OpenArchives()">archive</div> 
-				<div class="button" onclick="matbox.Loader.RefreshContent()">check again</div>
+			<div class="topic nothing clickable" id="topic" onclick="matbox.Loader.RefreshContent()">
+				that sample doesn't exist
 			</div>
 		<?php
 		return false;
@@ -380,24 +371,5 @@ function ShowTopic() {
 }
 
 ShowTopic(); 
-
-
-/*
-<div id="navspace">
-<div id="navigation"><div class="tab">archive</div></div>
-</div>
-<script>
-
-	$("#navspace").hover( function() {
-		$("#navigation").addClass( "show" );
-	},
-	function() {
-		$("#navigation").removeClass( "show" );
-	});
-	
-
-</script>
-*/
-
 
 ?>

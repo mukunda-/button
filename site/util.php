@@ -14,8 +14,7 @@ abstract class TopicStates {
 class Account {
 	public $id;
 	public $password;
-	public $page;
-	public $serial;
+	public $page; 
 	public $lastreply;
 	public $lastcompose;
 	
@@ -23,19 +22,17 @@ class Account {
 		$account = new Account();
 		$account->id = $row['id'];
 		$account->password = $row['password'];
-		$account->page = $row['page'];
-		$account->serial = $row['serial'];
+		$account->page = $row['page']; 
 		$account->lastreply = $row['lastreply'];
 		$account->lastcompose = $row['lastcompose'];
 		return $account;
 	}
 	
-	public static function FromArgs( $id, $password, $page, $serial, $lastreply, $lastcompose ) {
+	public static function FromArgs( $id, $password, $page, $lastreply, $lastcompose ) {
 		$account = new Account();
 		$account->id = $id;
 		$account->password = $password;
-		$account->page = $page;
-		$account->serial = $serial;
+		$account->page = $page; 
 		$account->lastreply = $lastreply;
 		$account->lastcompose = $lastcompose;
 		return $account;
@@ -52,7 +49,7 @@ function GetScore( $goods, $bads ) {
 	$a = min( $total / $r, 1.0 );
 	
 	$sc = round(25.0 * (1.0-$a) + ($goods*99/$total) * $a);
-	if( $sc == 99 ) { // hack to prevent easy legendaries
+	if( $sc == 99 ) { // hack to make legendary legendary
 		if( $r < 100 ) {
 			return 98;
 		}
@@ -116,7 +113,7 @@ function FindOrCreateAccount() {
 	$result = $sql->safequery( "LOCK TABLE Accounts WRITE" );
 	
 	$result = $sql->safequery( 
-		"SELECT id, password, page, serial, lastreply, lastcompose FROM Accounts WHERE ip=x'$xip'" );
+		"SELECT id, password, page, lastreply, lastcompose FROM Accounts WHERE ip=x'$xip'" );
 		
 	if( $result->num_rows < $ACCOUNTS_PER_IP  ) {
 		// create new account
@@ -152,14 +149,14 @@ function LogIn() {
 		// try to log in
 		$password = ReadCookieInt( "password" );
 		$result = $sql->safequery( 
-			"SELECT page, serial, lastreply, lastcompose FROM Accounts 
+			"SELECT page, lastreply, lastcompose FROM Accounts 
 			WHERE id=$accountid AND password=$password" );
 		
 		$row = $result->fetch_row();
 		if( !$row ) {
 			return FindOrCreateAccount();
 		}
-		return Account::FromArgs( $accountid, $password, $row[0], $row[1], $row[2], $row[3] );
+		return Account::FromArgs( $accountid, $password, $row[0], $row[1], $row[2] );
 	}
 }
 
@@ -268,7 +265,7 @@ function GetVoteValue( $source ) {
 //-----------------------------------------------------------------------------
 function LogException( $note, $e ) {
 	if( $GLOBALS['ERRLOG'] ) {
-		
+		date_default_timezone_set( 'America/Chigaco' );
 		if( !file_exists("logs") ) mkdir("logs", 0700);
 		file_put_contents( "logs/err.log", '[' . strftime('%x %H:%M:%S') . " $note] " . print_r( $e, true ) . "\n", FILE_APPEND );
 	}

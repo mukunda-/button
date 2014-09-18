@@ -1,7 +1,7 @@
 <?php
 
 // liverefresh.php?serial=x[&last=x][&old]
-// serial = account serial       must match account serial
+// page = must match account page
 // last = last known comment id
 // old = return data for old topics, otherwise returns "expired"
 //       and return 'error' if the topic isn't old.
@@ -21,7 +21,7 @@ require_once "util.php";
 //-----------------------------------------------------------------------------
 try {
 
-	if( !isset( $_GET['serial'] ) ) {
+	if( !isset( $_GET['page'] ) ) {
 		exit( 'error' );
 	}
 	$lastid = 0;
@@ -30,7 +30,7 @@ try {
 	}
 	$old = isset( $_GET['old'] );
 	$g_account = LogIn();
-	if( $g_account->serial != $_GET['serial'] ) {
+	if( $g_account->page != $_GET['page'] ) {
 		exit( 'wrongpage' );
 	}
 	

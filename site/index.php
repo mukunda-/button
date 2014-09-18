@@ -31,8 +31,7 @@ require_once 'minify.php';
 			AddScript( 'js/sizeadjust.js' );
 			AddScript( 'js/navbar.js' );
 		} else {
-			AddScript( 'min/matbox.min.js' );
-			// TODO minified scripts.
+			AddScript( 'min/matbox.min.js' ); 
 		}
 	?>
 	

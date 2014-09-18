@@ -24,10 +24,10 @@ function VoteTopic( upvote ) {
 	vbad.removeClass( "clickable" );
 	
 	$.post( 'topicvote.php', 
-		{ serial: matbox.GetPage(),  
+		{ page: matbox.GetPage(),  
 		  vote: upvote ? 'good':'cancer' } )
 		.done( function( data ) {
-			
+			alert(data);
 			if( data == 'error' ) {
 				RefreshContent(); 
 			} else if( data == 'good' ) {

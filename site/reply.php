@@ -15,14 +15,14 @@ $WAITTIME = 30;
 try {
 	
 	if( !isset( $_POST['text'] ) ||
-			!isset( $_POST['serial'] ) ) {
+			!isset( $_POST['page'] ) ) {
 		
 		exit( 'error' );
 	}
 	
 	$g_account = LogIn();
 	
-	if( $g_account->serial != $_POST['serial'] ) {
+	if( $g_account->page != $_POST['page'] ) {
 		exit( 'wrongpage' );
 	}
 	
