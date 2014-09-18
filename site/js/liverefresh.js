@@ -35,7 +35,7 @@ function DequeueNext() {
 
 //-----------------------------------------------------------------------------
 function CancelAutoRefresh() {
-	if( m_autorefresh_handle != null ) {
+	if( m_autorefresh_id != null ) {
 		m_timeout_group.Clear( m_autorefresh_id );
 		m_autorefresh_id = null;
 	}
@@ -166,8 +166,8 @@ function DoRefresh() {
 		get.old = 1;
 	}
 
-	var ajax = $.get( "liverefresh.php", get )
-		.done( OnAjaxDone );
+	m_timeout_group.AddAjax( $.get( "liverefresh.php", get ) )
+		.done( OnAjaxDone )
 		.fail( function( handle ) {
 			if( handle.ag_cancelled ) return;
 			
@@ -175,7 +175,7 @@ function DoRefresh() {
 			DequeueNext();
 			return;
 		});
-	m_timeout_group.AddAjax( ajax );
+
 	
 }
  

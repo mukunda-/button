@@ -1,6 +1,6 @@
 body {
-	background-color: #00B4FF;
-	font-family: Noto Sans;
+	background-color: [BGCOLOR];
+	font-family: Noto Sans; 
 	font-size: 28px;
 	overflow:hidden;
 }
@@ -30,7 +30,7 @@ body {
 
 	max-width: 550px;
 	padding: 24px 48px 25px 48px;
-	background-color: #e6f8ff;
+	background-color: [WINDOW];
 	color: #111119;
 	margin:auto;
 	text-align:center;
@@ -52,8 +52,7 @@ body {
 
 .topic.nothing {
 	background: none;
-	box-shadow: none;
-	cursor: pointer;
+	box-shadow: none; 
 	padding-left: 4px;
 	padding-right:4px;
 }
@@ -108,7 +107,7 @@ body {
 
 .submit {
 	
-	background-color: #e6f8ff;
+	background-color: [WINDOW];
 	margin: auto;
 	margin-top: 8px;
 	width: 128px;
@@ -149,25 +148,7 @@ body {
 	width: 100px; 
 	padding: 6px;
 }
-
-.options .good {
-	background-color: #baf0b8;
-}
-.options .bad {
-	display: inline-block;
-	background-color: #d31a1a;
-}
-
-.options .change {
-	display: inline-block;
-	background-color: #f0f1b9;
-}
-
-.options .change:hover {
-	background-color: #f1f1f1;
-	cursor: pointer;
-}
-
+ 
 .replies {
 	width: 100%;
 	max-width: 644px;
@@ -184,7 +165,7 @@ body {
 	/*width: 574px;*/
 	padding: 12px 36px 14px 36px;
 	font-size: 22px;
-	background-color: #e6f8ff;
+	background-color: [WINDOW];
 	word-wrap:break-word;
 	opacity: 0;
 	transition: opacity 0.5s;
@@ -288,45 +269,42 @@ body {
 	position: relative;
 	top: -1;
 }
-
+/*
 #navspace {
 	position: fixed;
 	left:0px;
 	bottom: 0px;
 	height: 42px;
 	width: 100%;
-}
+}*/
 
 #navigation {
+	position: fixed;
+	left: 0px;
+	top: -33px;
+	
 	font-size: 19px;
 	font-weight: bold;
 	
-	display: block;
+	display: inline-block;
 	padding: 0px;
-	position: fixed;
-	left: 0px;
-	bottom: -27px;
-	text-align:center;
-	width: 100%;
 	color: #111119;
-	transition: bottom 0.24s;
+	transition: top 0.25s;
 	
+	background-color: [WINDOW];
+	border-radius: 0px 0px 13px 0px;
+	padding: 2px 8px 4px 4px;
 }
 
 #navigation.show {
-	bottom: 0px;
-}
-/*
-#navigation:hover {
-	bottom: 0px;
-}*/
+	top: 0px;
+} 
 
 #navigation .tab {
-	border-radius: 8px 8px 0px 0px;
-	padding: 2px 8px;
+	padding: 0px 8px;
 	display: inline-block;
-	background-color: #e6f8ff;
 	cursor:pointer;
+	border-radius: 8px;
 }
 
 #navigation .divider {
@@ -345,4 +323,12 @@ body {
 
 #navigation .tab:active {
 	background-color: #999;
+}
+
+#refresher {
+	width: 80px;
+	height: 80px;
+	margin:auto;
+	margin-top: 8px;
+	margin-bottom: 8px;
 }

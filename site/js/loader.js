@@ -41,7 +41,7 @@ function FadeIn( content ) {
 	matbox.InitializePostLoad();
 	m_loading = false;
 	
-	AdjustSize();
+	matbox.AdjustSize();
 	output.css( 'opacity', 1 ); // fade in
 }
 
@@ -61,7 +61,7 @@ this.Load = function( url, delay ) {
 	
 	m_loading = true;
 	
-	LiveRefresh.Reset(); 
+	matbox.LiveRefresh.Reset(); 
 	
 	output = $( '#content' );
 	output.css( 'opacity', 0 ); // fade out
@@ -85,7 +85,7 @@ this.Load = function( url, delay ) {
 	$.get( url )
 		.done( function(data) {
 			
-			if( g_loading_fading_out ) {
+			if( m_fading_out ) {
 				m_page_content = data;
 			} else {
 				FadeIn( data );
@@ -106,7 +106,7 @@ this.Load = function( url, delay ) {
  * Reload content.php
  */
 this.RefreshContent = function() {
-	LoadPage( 'content.php' );
+	this.Load( 'content.php' );
 }
 
 /** ---------------------------------------------------------------------------

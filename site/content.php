@@ -224,9 +224,10 @@ try {
 	}
 } catch( Exception $e ) {
 	echo '
-			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
+			<div class="topic nothing" id="topic" ">
 				something messed up.
 			</div>';
+	echo    '<div id="refresher" onclick="matbox.Loader.RefreshContent()"></div>';
 	LogException( "getnewpage", $e );
 	
 	die();
@@ -257,42 +258,54 @@ function ShowTopic() {
 	global $g_account;
 	
 	echo '<script>';
-	echo 'Button.SetSerial( '.$g_account->serial.' );';
-	echo 'Button.SetTopic( '.$g_account->page.', "none");';
+	//echo 'Button.SetSerial( '.$g_account->serial.' );';
+	echo 'matbox.SetPage( '.$g_account->page.', "none");';
 	echo '</script>';
 	 
 	if( $g_account->page == 0 ) {
-		echo '
-			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
-				nothing here. come back later.
-			</div>';
+		?>
+			<div class="topic nothing" id="topic">
+				no new matter.
+			</div>
+			<div class="panel">
+				<div class="button" onclick="matbox.OpenArchives()">archive</div> 
+				<div class="button" onclick="matbox.Loader.RefreshContent()">check again</div>
+			</div>
+		<?php
 		return false;
 	}
 	
 	try {
 		$topic = new Topic( $g_account );
 	} catch( Exception $e ) {
-		echo '
-			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
+		?>
+			<div class="topic nothing clickable" id="topic" onclick="matbox.Loader.RefreshContent()">
 				something messed up.
-			</div>';
+			</div>
+		<?php
 		LogException( "readtopic", $e );
 		die();
 	}
 	
 	if( !$topic->valid ) {
-		echo '
-			<div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
-				nothing here. come back later.
-			</div>';
+		?>
+			<div class="topic nothing" id="topic">
+				no new matter.
+			</div>
+			<div class="panel">
+				<div class="button" onclick="matbox.OpenArchives()">archive</div> 
+				<div class="button" onclick="matbox.Loader.RefreshContent()">check again</div>
+			</div>
+		<?php
 		return false;
 	}
 	
 	if( $topic->state == TopicStates::Deleted ) {
-		echo '
-			  <div class="topic nothing" id="topic" onclick="Button.RefreshFromNothing()">
-			  	  this matter was buried.
-			  </div>';
+		?>
+			<div class="topic nothing clickable" id="topic" onclick="matbox.Loader.RefreshContent()">
+				this matter was buried.
+			</div>
+		<?php
 		return false;
 	}
 	
@@ -307,8 +320,8 @@ function ShowTopic() {
 		
 		<script>
 			$("#composition").keydown( function() {
-				if( Button.IsLoading() ) return false;
-				setTimeout( Button.CompositionKeyPressed, 0 );
+				if( matbox.Loader.IsLoading() ) return false;
+				setTimeout( matbox.CompositionKeyPressed, 0 );
 			});
 		</script>
 		
@@ -320,7 +333,7 @@ function ShowTopic() {
 	echo '<div class="topic" id="topic">';
 	echo $topic->content;
 	if( $topic->state == TopicStates::Live ) {
-		echo '<script>Button.SetTopic( '.$topic->id.', "live")</script>';
+		echo '<script>matbox.SetPage( '.$topic->id.', "live")</script>';
 		if( $topic->vote === true ) {
 			echo '<div class="good" id="goodbutton"><img src="star.png" alt="good" title="good"></div>';
 			echo '<div class="bad" id="badbutton"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
@@ -333,7 +346,7 @@ function ShowTopic() {
 		}
 		
 	} else if( $topic->state == TopicStates::Old ) {
-		echo '<script>Button.SetTopic( '.$topic->id.',"old")</script>';
+		echo '<script>matbox.SetPage( '.$topic->id.',"old" )</script>';
 		// print score
 		$score = GetScore($topic->goods,$topic->bads);
 		echo '<div class="score '.ScoreRank($score).'" id="scorediv" title="'.ScoreRankName($score).'">'.$score.'</div>';
@@ -388,8 +401,8 @@ function ShowTopic() {
 
 ShowTopic(); 
 
-?>
 
+/*
 <div id="navspace">
 <div id="navigation"><div class="tab">archive</div></div>
 </div>
@@ -401,23 +414,10 @@ ShowTopic();
 	function() {
 		$("#navigation").removeClass( "show" );
 	});
-	/*
-	$("#navspace").mouseover( function() {
-		$("#navigation").addClass( "show" );
-	});
-	$("#navspace").mouseout( function() {
-		$("#navigation").removeClass( "show" );
-	});
-
-	$("#navigation").mouseover( function() {
-		$( this ).addClass( "show" );
-	}); 
-	$("#navigation").mouseout( function() {
-		$( this ).removeClass( "show" );
-	});*/
+	
 
 </script>
+*/
 
-<?php
 
 ?>

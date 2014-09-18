@@ -32,13 +32,18 @@ var m_timeouts = AsyncGroup.Create(); // async operations that should be
 
 //-----------------------------------------------------------------------------
 var images = new Array();
-(function() {
+function preload() {
 	// preload images
 	for (i = 0; i < preload.arguments.length; i++) {
 		images[i] = new Image();
 		images[i].src = preload.arguments[i];
 	}
-})();
+}
+
+preload( 
+	"bad.png", 
+	"star.png"
+);
 
 //-----------------------------------------------------------------------------
 function GetTime() {
@@ -217,7 +222,7 @@ matbox.ResetReplyInput = function() {
 //-----------------------------------------------------------------------------
 function CompositionKeyPressed() {
 	
-	AdjustTop();
+	matbox.AdjustTop();
 	if( !m_compose_sending ) {
 		ShowSubmit( $("#composition") ); 
 	}
@@ -230,49 +235,6 @@ function ReplyKeyPressed() {
 	} 
 }
 
-//-----------------------------------------------------------------------------
-function AdjustTop() {
-	var poop = $('#topic');
-	var height = poop.height() 
-		+ parseInt(poop.css('padding-top'))
-		+ parseInt(poop.css('padding-bottom'));
-	var sh = $( window ).height();
-	
-	$("#goodbutton").css( "top", (height / 2 - 16) + "px" );
-	$("#badbutton").css( "top", (height / 2 - 16) + "px" );
-	
-	$("#scorediv").css( "top", (height / 2 - 16) + "px" );
-	$("#newbutton").css( "top", (height / 2 - 16) + "px" );
-	height += 16; // body margin
-	var margin = ((sh/2)-(height/2));
-	if( margin < 32 ) {
-		margin = 32;
-	}
-	poop.css( 'margin-top', margin + "px" );
-}
-
-//-----------------------------------------------------------------------------
-function AdjustBottom() {
-	if( $('#replies').length != 0 ) {
-	
-		var sh = $( window ).height();
-		$('#padding').css( 'height', ((sh/2)) + "px" );
-	}
-}
-
-
-//-----------------------------------------------------------------------------
-function AdjustSize() {
-	AdjustTop();
-	AdjustBottom();
-	
-	var content_width = $(window).width() - 72 - 16; // - padding - body width
-	
-	if( content_width > 574 ) content_width = 574;
-	if( content_width < 32 ) content_width = 32;
-	
-	$( '.replies .reply' ).css( 'max-width', content_width + 'px' );
-}
 
 //-----------------------------------------------------------------------------
 function CloseOld() {
@@ -308,7 +270,7 @@ function ScoreRankName( a ) {
 
 //-----------------------------------------------------------------------------
 function InitializePreLoad() {
-	LiveRefresh.Reset();
+	matbox.LiveRefresh.Reset();
 	m_compose_sending = false; 
 	matbox.ResetTopicVoted();
 	m_timeouts.ClearAll();
@@ -321,6 +283,10 @@ function InitializePostLoad() {
 	if( m_page_state == 'live' || m_page_state == 'old' ) {
 		// do live refresh?
 	}
+	
+	matbox.Navbar.Show( [
+			{ caption: 'test', onclick: 'testes()' }
+		] );
 }
  
 /******************************************************************************
@@ -338,7 +304,7 @@ $(window).bind("mousewheel",function(ev, delta) {
 //-----------------------------------------------------------------------------
 $(window).resize( function () { 
 	// adjust the margins when the window is resized
-	AdjustSize();
+	matbox.AdjustSize();
 });
 
 //-----------------------------------------------------------------------------
@@ -386,7 +352,7 @@ $( function() {
 // exposure
 // ****************************************************************************
  
-matbox.SetTopic = function( page, state ) {
+matbox.SetPage = function( page, state ) {
 	g_topic_page = page;
 	g_topic_state = state;
 }
@@ -405,7 +371,6 @@ window.matbox.RefreshFromNothing = function () {
 
 matbox.CompositionKeyPressed = CompositionKeyPressed;
 matbox.ReplyKeyPressed       = ReplyKeyPressed;
-matbox.DoLiveRefresh         = LiveRefresh.Refresh;
 matbox.SubmitComposition     = SubmitComposition;
 matbox.SubmitComment         = SubmitComment;
 matbox.CloseOld				 = CloseOld;
