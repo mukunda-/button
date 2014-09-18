@@ -1,0 +1,84 @@
+
+.topic { 
+	position:relative;
+	font-size: 30px;
+
+	max-width: 550px;
+	padding: 24px 48px 25px 48px;
+	background-color: [WINDOW];
+	color: #111119;
+	margin:auto;
+	text-align:center;
+	word-wrap:break-word;
+}
+
+.topic  .compose {
+	background: none;
+	/*font-size: 22px;*/
+	border: none;
+	width: 100%;
+	overflow: hidden;
+	border-bottom: 1px dotted rgba(0,0,0,0.3);
+	min-height:42px;
+	min-width: 96px;
+	word-wrap:break-word;
+	outline: none;
+}
+
+.topic.nothing {
+	background: none;
+	box-shadow: none; 
+	padding-left: 4px;
+	padding-right:4px;
+	
+	cursor: default;
+	[NOUSERSELECT]
+}
+
+.topic .good {
+	position: absolute;
+	left: 12px;
+	top: 4px;
+	width: 32px;
+	height: 32px; 
+	font-size:6px;
+}
+.topic .bad, .topic .new {
+	position: absolute;
+	right: 12px;
+	top: 4px;
+	width: 32px;
+	height: 32px; 
+	font-size:6px;
+}
+
+.topic .score {
+	position: absolute;
+	left: 12px;
+	top: 4px; 
+	font-size: 23px;
+	font-weight: bold;
+}
+
+.topic .new {
+	
+	background-image: url('new.png');
+	background-position: 0px 0px;
+	cursor: pointer;
+}
+
+.topic .new:hover {
+	background-position: -32px 0px;
+}
+
+.topic .new:active {
+	background-position: -64px 0px;
+}
+
+.clickable {
+	cursor:pointer;
+}
+
+.topic .good:hover {
+	
+}

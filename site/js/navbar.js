@@ -8,31 +8,38 @@ matbox.Navbar = this;
 
 var m_active = false;
 var m_options = null;
+var m_hidden = true;
+
+var m_ag = AsyncGroup.Create();
 
 //-----------------------------------------------------------------------------
 function Show( options ) { 
 	m_active = false;
 	if( isSet( options ) ) m_options = options;
 	
-	$("#navigation")
-		.clearQueue()
-		.queue( HideBar )
-		.delay( 1500 )
-		.queue( ShowBar )
-		.delay( 500 );
+	m_ag.ClearAll();
+	var nav = $( "#navigation" );
+	nav.clearQueue();
+	if( !m_hidden ) {
+		nav.queue( HideBar );
+	}
+	nav.queue( ShowBar );
 }
 
 //-----------------------------------------------------------------------------
 function Hide() {
 	m_active = false;
-	$("#navigation")
+	
+	m_ag.ClearAll();
+	$( "#navigation" )
 		.clearQueue()
-		.removeClass('show');
+		.queue( HideBar );
 }
 
 //-----------------------------------------------------------------------------
 function ShowBar( next ) { 
 	if( m_options == null ) next();
+	m_hidden = false;
 
 	var html = [];
 	for( var i = 0; i < m_options.length; i++ ) {
@@ -43,18 +50,20 @@ function ShowBar( next ) {
 	}
 	
 	m_active = true;
-	$("#navigation")
+	$( "#navigation" )
 		.html( html.join("") )
 		.addClass( 'show' );
 
-	next();
+	m_ag.Set( next, 500 );
 }
 
 //-----------------------------------------------------------------------------
 function HideBar( next ) {
 	m_active = false; 
-	$("#navigation").removeClass('show');
-	next();
+	$( "#navigation" ).removeClass('show');
+	m_ag.Set( function() {
+		m_hidden = true;
+		next(); }, 500 );
 }
 
 this.Show = Show;

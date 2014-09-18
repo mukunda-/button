@@ -118,4 +118,11 @@ this.IsLoading = function() {
 	return m_loading;
 }
 
+/** ---------------------------------------------------------------------------
+ * Set the loading flag, to freeze the page for an imminent pageload. 
+ */
+this.SetLoading = function() {
+	m_loading = true;
+}
+
 })();

@@ -314,7 +314,7 @@ function ShowTopic() {
 				<div class="compose" contenteditable="true" id="composition"></div>
 			  </div>';
 			  
-		echo '<div class="submit" onclick="Button.SubmitComposition()" id="submit">analyze</div>';
+		echo '<div class="submit" onclick="matbox.SubmitComposition()" id="submit">analyze</div>';
 		
 		?>
 		
@@ -341,8 +341,8 @@ function ShowTopic() {
 			echo '<div class="good" id="goodbutton"><img src="unstar.png" alt="good" title="good"></div>';
 			echo '<div class="bad" id="badbutton"><img src="bad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
 		} else {
-			echo '<div class="good clickable" id="goodbutton" onclick="Button.VoteTopicGood()"><img src="unstar.png" alt="good" title="good"></div>';
-			echo '<div class="bad clickable" id="badbutton" onclick="Button.VoteTopicBad()"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
+			echo '<div class="good clickable" id="goodbutton" onclick="matbox.VoteTopicGood()"><img src="unstar.png" alt="good" title="good"></div>';
+			echo '<div class="bad clickable" id="badbutton" onclick="matbox.VoteTopicBad()"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
 		}
 		
 	} else if( $topic->state == TopicStates::Old ) {
@@ -350,7 +350,7 @@ function ShowTopic() {
 		// print score
 		$score = GetScore($topic->goods,$topic->bads);
 		echo '<div class="score '.ScoreRank($score).'" id="scorediv" title="'.ScoreRankName($score).'">'.$score.'</div>';
-		echo '<div class="new" id="newbutton" onclick="Button.CloseOld()"></div>';
+		/*echo '<div class="new" id="newbutton" onclick="matbox.CloseOld()"></div>';*/
 	}
 	echo '</div>';
 	
@@ -391,7 +391,7 @@ function ShowTopic() {
 	echo '</div>'; // replies
 	
 	
-	echo '<div class="submit" onclick="Button.SubmitComment()" id="submit">submit</div>';
+	echo '<div class="submit" onclick="matbox.SubmitComment()" id="submit">submit</div>';
 		
 	echo '<div class="padding" id="padding"></div>';
 	

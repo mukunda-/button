@@ -1,0 +1,52 @@
+
+#navigation {
+	position: fixed;
+	left: 0px;
+	top: -33px;
+	
+	font-size: 19px;
+	font-weight: bold;
+	
+	display: inline-block;
+	padding: 0px;
+	color: #111119;
+	transition: top 0.25s;
+	
+	background-color: [WINDOW];
+	border-radius: 0px 0px 13px 0px;
+	padding: 2px 8px 4px 4px;
+}
+
+#navigation.show {
+	top: 0px;
+} 
+
+#navigation .tab {
+	padding: 0px 8px;
+	display: inline-block;
+	cursor:pointer;
+	border-radius: 8px;
+	transition: background-color 0.25s;
+	
+	[NOUSERSELECT]
+}
+
+#navigation .tab:hover {
+	color: #555;
+	text-decoration: underline;
+	transition: background-color 0.25s;
+}
+
+#navigation .tab:active {
+	background-color: #999;
+	transition: background-color 0s;
+}
+
+#navigation .divider {
+	margin-left: 7px;
+	width: 7px;	
+	height: 22px;
+	vertical-align:bottom;
+	border-left: 1px solid #111119;
+	display: inline-block;
+}

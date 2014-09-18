@@ -69,7 +69,7 @@ function ReadText( element ) {
 //-----------------------------------------------------------------------------
 function SubmitComposition() {
 	if( matbox.Loader.IsLoading() ) return false;
-	if( g_compose_sending ) return false;
+	if( m_compose_sending ) return false;
 	if(  $('#composition').text().trim() == "" ) {
 		return false;
 	}
@@ -136,7 +136,7 @@ function SubmitComment() {
 		
 	m_timeouts.AddAjax( 
 		$.post( "reply.php", 
-			{ text: content, page: g_page } ))
+			{ text: content, page: m_page } ))
 						   
 		.done( function( data ) {
 			var reopeninput = false;
@@ -238,10 +238,11 @@ function ReplyKeyPressed() {
 
 //-----------------------------------------------------------------------------
 function CloseOld() {
-	if( m_loading ) return;
+	if( matbox.Loader.IsLoading() ) return;
 	if( m_topic_state != 'old' ) return;
 	
-	g_loading = true;
+	matbox.Loader.SetLoading();
+	
 	m_timeouts.AddAjax( $.post( "closeold.php", { page: m_page } ) )
 		.always( function() {
 			RefreshContent();
@@ -313,6 +314,7 @@ $( window ).on ( 'beforeunload', function(){
 	// it might not fade out all the way before the page reloads but this
 	// is the best we can do.
 	$('#content').css( 'opacity', 0 );
+	matbox.Navbar.Hide();
 }); 
 
 //-----------------------------------------------------------------------------
@@ -353,16 +355,16 @@ $( function() {
 // ****************************************************************************
  
 matbox.SetPage = function( page, state ) {
-	g_topic_page = page;
-	g_topic_state = state;
+	m_page = page;
+	m_page_state = state;
 }
 
 matbox.GetPage = function() {
-	return g_topic_page;
+	return m_page;
 }
 
 matbox.GetPageState = function() {
-	return g_topic_state;
+	return m_page_state;
 }
 
 window.matbox.RefreshFromNothing = function () { 

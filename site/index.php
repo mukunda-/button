@@ -1,28 +1,24 @@
 <?php
 
-require_once 'config.php';
-require_once 'style.php';
-
-GenerateStyle();
-
-?>
-
-<!DOCTYPE html>
+require_once 'config.php'; 
+require_once 'minify.php';
+  
+?><!DOCTYPE html>
 <html>
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta charset="UTF-8">
 	
 	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700' rel='stylesheet' type='text/css'>
-	
-	<link rel="stylesheet" href="style.css" type="text/css">
+
+	<link rel="stylesheet" href="min/style.min.css" type="text/css">
 	
 	<?php 
 		function AddScript( $src ) {
 			echo '<script src="'.$src.'"></script>';
 		}
 		
-		AddScript( 'js/jquery-1.11.0.min.js' );
+		AddScript( '//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js' );
 		
 		if( $DEBUG ) {
 			AddScript( 'js/jquery.mousewheel.min.js' );
@@ -35,10 +31,11 @@ GenerateStyle();
 			AddScript( 'js/sizeadjust.js' );
 			AddScript( 'js/navbar.js' );
 		} else {
+			AddScript( 'min/matbox.min.js' );
 			// TODO minified scripts.
 		}
 	?>
-				
+	
 	<title>matbox - the matter machine</title>
 	
 </head>

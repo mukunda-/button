@@ -1,0 +1,78 @@
+
+.replies {
+	width: 100%;
+	max-width: 644px;
+	margin: auto;
+}
+
+.replies .reply {
+	vertical-align:top;
+	position: relative;
+	margin: auto;
+	margin-top: 12px;
+	max-width: 574px;
+	display: inline-block;
+	/*width: 574px;*/
+	padding: 12px 36px 14px 36px;
+	font-size: 22px;
+	background-color: [WINDOW];
+	word-wrap:break-word;
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+
+ 
+.replies  .reply  .replyinput {
+	background: none;
+	font-size: 22px;
+	border: none;
+	width: 100%;
+	overflow: hidden;
+	resize: none;
+	height:auto;
+	border-bottom: 1px dotted rgba(0,0,0,0.3);
+	min-height:32px;
+	min-width: 96px;
+	word-wrap:break-word;
+    
+}
+
+.replies  .reply  .replyinput.init {
+	color: #999;
+}
+
+.replies  .reply  .replyinput.fade {
+	cursor:default;
+	
+}
+
+.replies .reply .score {
+	font-size: 12px;
+	position: absolute;
+	top: 18px;
+	left: 8px;
+	font-weight: bold;
+}
+.replies .rvote {
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	cursor: pointer;
+	
+}
+
+.replies .rvote.rgood {
+	top: 10px;
+	left: 10px;
+}
+
+.replies .rvote.rbad {
+	left: 10px;
+	top: 30px;
+}
+
+.replies .rvote img {
+	width: 16px;
+	height: 16px;
+	vertical-align:top;
+}
