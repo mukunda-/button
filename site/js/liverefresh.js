@@ -12,7 +12,7 @@ var m_this = this;
 var m_refreshing = false; 
 var m_autorefresh_id = null; 
 var m_queued = 0; 
-var m_agroup = AsyncGroup.Create();
+var m_timeout_group = AsyncGroup.Create();
 var m_last_comment = 0; // last comment id that was retrieved
 var m_num_comments = 0; // total number of comments on page
 
@@ -84,7 +84,7 @@ function ChainFadeComments( start, end ) {
 
 //-----------------------------------------------------------------------------
 function OnAjaxDone( data ) { 
-	if( handle.ag_cancelled ) return;
+
 	if( data == 'error' ) {
 		DequeueNext();
 		return;
@@ -185,7 +185,7 @@ function Refresh() {
 	if( topicstate != 'live' &&
 		topicstate != 'old' ) return;
 	
-	m_queue++;
+	m_queued++;
 	if( !m_refreshing ) {
 		DequeueNext();
 	}
@@ -199,7 +199,7 @@ function Reset() {
 	m_refreshing = false;
 	m_last_comment = 0;
 	m_num_comments = 0;
-	m_agroup.ClearAll();
+	m_timeout_group.ClearAll();
 }
 
 this.Reset = Reset;

@@ -283,6 +283,24 @@ function InitializePostLoad() {
 	// replace image tags in topic
 	if( m_page_state == 'live' || m_page_state == 'old' ) {
 		// do live refresh?
+		
+		
+		if( m_page_state == 'live' ) {
+			// hook reply input
+			$('#replyinput').focus( function() {
+				if( $(this).hasClass( 'init' ) ) {
+					$(this).removeClass( 'init' );
+					$(this).html("");
+				}
+			});
+			
+			$("#replyinput").keydown( function() {
+				if( matbox.Loader.IsLoading() ) return false;
+				setTimeout( matbox.ReplyKeyPressed, 0 );
+			});
+		}
+		
+		matbox.LiveRefresh.Refresh();
 	}
 	
 	matbox.Navbar.Show( [

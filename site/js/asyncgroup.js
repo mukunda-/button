@@ -81,13 +81,14 @@ AsyncGroup.prototype.ClearAll = function() {
  * @return       handle (for chaining)
  */
 AsyncGroup.prototype.AddAjax = function( handle ) {
+	var that = this;
 	var id = ++this.m_next_id;
 	handle.ag_id = id;
 	handle.ag_cancelled = false;
 	this.m_ajax[id] = handle;
 	
 	handle.always( function() {
-		RemoveAjax( handle );
+		that.RemoveAjax( handle );
 	});
 	
 	return handle;

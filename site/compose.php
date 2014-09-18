@@ -6,20 +6,20 @@ require_once "util.php";
 $MAXCHARS = 254;
 $MAXLINES = 15;
 
-// compose.php POST { serial, text }
+// compose.php POST { page, text }
 
 //-----------------------------------------------------------------------------
 try {
 
 	if( !isset( $_POST['text'] ) ||
-		!isset( $_POST['serial'] ) ) {
+		!isset( $_POST['page'] ) ) {
 		
 		exit( 'error' );
 	}
 	
 	$g_account = LogIn();
 	
-	if( $g_account->serial != $_POST['serial'] ) {
+	if( $g_account->page != $_POST['page'] ) {
 		exit( 'wrongpage' );
 	}
 	
@@ -44,7 +44,7 @@ try {
 			content='$text', time=".time()." WHERE id=".$g_account->page."
 			AND state=".TopicStates::Composing );
 			
-	$sql->safequery( "UPDATE Accounts SET serial=serial+1 WHERE id=". $g_account->id );
+	//$sql->safequery( "UPDATE Accounts SET serial=serial+1 WHERE id=". $g_account->id );
 			
 	if( $sql->affected_rows == 0 ) {
 		// their composition slot was deleted because

@@ -68,7 +68,7 @@ $sql->safequery(
 		password INT NOT NULL,
 		ip VARBINARY(16) NOT NULL,
 		page INT NOT NULL DEFAULT 0,
-		serial INT NOT NULL DEFAULT 0,
+	
 		lastreply INT NOT NULL DEFAULT 0,
 		lastcompose INT NOT NULL DEFAULT 0,
 		INDEX USING BTREE(ip) )" );

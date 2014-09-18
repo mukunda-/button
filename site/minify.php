@@ -45,7 +45,7 @@ $JS_FILES = array(
 	'js/votetopic.js'
 );
 
-$JS_OUT = "min/matbox.js";
+$JS_OUT = "min/matbox.min.js";
 
 //-----------------------------------------------------------------------------
 function OutOfDate( $file_list, $target ) {

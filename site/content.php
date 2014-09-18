@@ -363,29 +363,9 @@ function ShowTopic() {
 		echo '<div class="reply" id="replyinputbox">
 				 <div class="replyinput init" id="replyinput" contenteditable="true"></div>
 			  </div>';
-		
-		?>
-		<script>
-			$('#replyinput').focus( function() {
-				if( $(this).hasClass( 'init' ) ) {
-					$(this).removeClass( 'init' );
-					$(this).html("");
-				}
-			});
-			
-			$("#replyinput").keydown( function() {
-				if( Button.IsLoading() ) return false;
-				setTimeout( Button.ReplyKeyPressed, 0 );
-			});
-			  
-			Button.DoLiveRefresh();
-		</script>
-		
-		<?php
+		 
 	} else if( $topic->state == TopicStates::Old ) {
-		?><script>
-			Button.DoLiveRefresh();
-		</script><?php
+	 
 	}
 	
 	echo '</div>'; // replies
