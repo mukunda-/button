@@ -8,13 +8,7 @@ function isSet( a ) {
 (function() { window.matbox = window.matbox || {};
  
 console.log('hi');
-
-////var g_account_serial = 0; // the serial is used to
-// ignore actions when the user is actually on
-// a different page (most likely because they
-// opened the site in another tab)
-// --deprecated, just use PAGE.
-
+ 
 var m_compose_sending = false; // if we are busy trying to submit a 
 								// topic or reply
 								
@@ -36,9 +30,7 @@ var m_browsing_archive = false; // this is set to true if the user enters
 								// actually presses the archive button
 								// and this is unset when the user presses
 								// the "new" button
-								
-//var g_page_serial = 0; // used to catch outdated operations.
-
+					 
 //-----------------------------------------------------------------------------
 var images = new Array();
 function preload() {
@@ -373,8 +365,23 @@ $(document).bind('keydown', function(e) {
 
 //-----------------------------------------------------------------------------
 $( function() { 
-	// load the content when ready
-	matbox.Loader.Load( 'content.php', -200 );
+	// load the initial content.
+	// check URL for matbox 
+	
+	if( window.location.hash ) {
+		matbox.Loader.Load( 'content.php', -200, 
+				{ page: window.location.hash.substring(1) } );
+	} else {
+		matbox.Loader.Load( 'content.php', -200 );
+	}
+});
+
+//-----------------------------------------------------------------------------
+$(window).bind('hashchange', function() {
+	if( window.location.hash ) {
+		matbox.Loader.Load( 'content.php', undefined, 
+				{ page: window.location.hash.substring(1) } );
+	}
 });
 
 // ****************************************************************************

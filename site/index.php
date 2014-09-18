@@ -19,6 +19,14 @@ require_once 'minify.php';
 		}
 		
 		AddScript( '//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js' );
+		/*
+		if( isset( $_GET['page'] ) ) {
+			$page = intval($_GET['page']);
+			if( $page != 0 ) {
+				echo '<script>window.GET = window.GET || {};
+					  GET.page = '.$page.';</script>';
+			}
+		}*/
 		
 		if( $DEBUG ) {
 			AddScript( 'js/jquery.mousewheel.min.js' );
@@ -33,8 +41,8 @@ require_once 'minify.php';
 		} else {
 			AddScript( 'min/matbox.min.js' ); 
 		}
+		
 	?>
-	
 	<title>matbox - the matter machine</title>
 	
 </head>

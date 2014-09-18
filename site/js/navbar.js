@@ -6,19 +6,64 @@
 
 matbox.Navbar = this;
 
-var m_active = false;
-var m_options = null;
-var m_hidden = true;
+var STATE_HIDDEN  = 0;
+var STATE_FADEIN  = 1;
+var STATE_ACTIVE  = 2;
+var STATE_FADEOUT = 3;
+
+var m_options = {};
+var m_new_options = {};
+var m_options_dirty = false;
+var m_title;
+var m_title_dirty = false;
+
+//var m_active  = false;
+//var m_options = null;
+var m_state = STATE_HIDDEN;// = true;
 
 var m_ag = AsyncGroup.Create();
 
 //-----------------------------------------------------------------------------
-function Show( options ) { 
+function CompareOptions( a, b ) {	
+	return JSON.stringify(a) === JSON.stringify(b);
+}
+
+//-----------------------------------------------------------------------------
+function Show( title, options ) { 
 	m_active = false;
-	if( isSet( options ) ) m_options = options;
+	
+	var same = true;
+	
+	if( isSet( options ) && options != null ) {
+		if( !CompareOptions( m_options, options ) ) {
+			m_new_options = options;
+			m_options_dirty = true;
+			same = false;
+		}
+	}
+	
+	if( isSet( title ) && title != null ) {
+		if( title != m_title ) {
+			m_title = title;
+			m_title_dirty = true;
+			same = false;
+		}
+	}
+	
+	var nav = $( "#navigation" );
+	
+	switch( m_state ) {
+	case STATE_HIDDEN:
+		m_ag.ClearAll();
+		nav.clearQueue();
+	case STATE_FADEIN:
+	case STATE_FADEOUT:
+	case STATE_ACTIVE:
+		
+	}
 	
 	m_ag.ClearAll();
-	var nav = $( "#navigation" );
+	
 	nav.clearQueue();
 	if( !m_hidden ) {
 		nav.queue( HideBar );
@@ -40,7 +85,7 @@ function Hide() {
 function ShowBar( next ) { 
 	if( m_options == null ) next();
 	m_hidden = false;
-
+	
 	var html = [];
 	for( var i = 0; i < m_options.length; i++ ) {
 		

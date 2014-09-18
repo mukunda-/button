@@ -249,7 +249,7 @@ function ScoreRankName( $a ) {
 function ShowTopic() {
 	global $g_account, $g_get_page;
 	
-	$page = $g_get_page ? $g_account->page : $g_get_page;
+	$page = $g_get_page ? $g_get_page : $g_account->page;
 	
 	echo '<script>';
 	 

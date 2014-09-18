@@ -6,6 +6,8 @@
 // Loader
 // module for loading pages in place
 
+// TODO queue next page load for history operations
+
 matbox.Loader = this;
 
 var FADE_OUT_TIME = 500; // not the actual fadeout time (set in css)
@@ -53,9 +55,10 @@ function FadeIn( content ) {
  *              negated values are treated as negated absolute values
  *              positive values are added to the normal fade constant
  */
-this.Load = function( url, delay ) {
+this.Load = function( url, delay, get ) {
 	if( m_loading ) return;
 
+	if( !isSet(get) ) get = {};
 	if( !isSet(delay) ) delay = 500;
 	if( delay < 0 ) delay = -delay - FADE_OUT_TIME; 
 	
@@ -82,7 +85,7 @@ this.Load = function( url, delay ) {
 			}
 		}, FADE_OUT_TIME+delay );
 	
-	$.get( url )
+	$.get( url, get )
 		.done( function(data) {
 			
 			if( m_fading_out ) {
