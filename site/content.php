@@ -285,6 +285,7 @@ function ShowTopic() {
 	
 	if( $page == 0 ) {
 		?>
+			<script>matbox.SetPage( 0, "nonew" );</script>
 			<div class="topic nothing" id="topic">
 				no new matter.
 			</div>

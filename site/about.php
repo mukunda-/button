@@ -1,3 +1,5 @@
+<script>matbox.SetInfoPage( "about" );</script>
+
 <div class="topic nothing" id="topic">
 	<img src="logo256.png">
 	

@@ -1,5 +1,7 @@
 <?php
 
+// absolute path to site directory
+// ie /button/site/
 $apath = rtrim(dirname($_SERVER['PHP_SELF']), '/\\').'/'; 
 
 $SLOTS = 5; // number of discussions that can be performed

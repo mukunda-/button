@@ -21,6 +21,8 @@ var m_loading = false;  // loading is set while a new page is being loaded
 var m_fading_out = false;  // used to coordinate fadeout and ajax result
 var m_page_content = null; //
 
+var m_ag = AsyncGroup.Create();
+
 // error content when the ajax fails:
 var PAGE_LOAD_FAILED_CONTENT = 
 	'<div class="topic nothing" id="topic">'+
@@ -73,7 +75,7 @@ this.Load = function( url, delay, get ) {
 	
 	// whichever one of these finishes first (fadeout/ajax)
 	// thats the one that sets the content and fades in
-	setTimeout( 
+	m_ag.Set( 
 		function() {
 			m_fading_out = false; 
 			if( m_page_content != null ) {
@@ -85,7 +87,7 @@ this.Load = function( url, delay, get ) {
 			}
 		}, FADE_OUT_TIME+delay );
 	
-	$.get( url, get )
+	m_ag.AddAjax( $.get( url, get ) )
 		.done( function(data) {
 			
 			if( m_fading_out ) {
@@ -95,7 +97,9 @@ this.Load = function( url, delay, get ) {
 				
 			}
 		})
-		.fail( function() {
+		.fail( function( handle ) {
+			if( handle.ag_cancelled ) return;
+			
 			if( m_fading_out ) {
 				m_page_content = PAGE_LOAD_FAILED_CONTENT;
 			} else {
@@ -103,6 +107,19 @@ this.Load = function( url, delay, get ) {
 			}
 		});
 	
+}
+
+/** ---------------------------------------------------------------------------
+ * Same as Load, but cancel an existing load first.
+ *
+ */
+this.ForceLoad = function( url, delay, get ) {
+	if( m_loading ) {
+		
+		m_ag.ClearAll();
+		m_loading = false;
+	}
+	Load( url, delay, get );
 }
 
 /** ---------------------------------------------------------------------------
@@ -126,6 +143,12 @@ this.IsLoading = function() {
  */
 this.SetLoading = function() {
 	m_loading = true;
+}
+
+/** ---------------------------------------------------------------------------
+ * Cancel any page load in progress.
+ */
+this.Cancel = function() {
 }
 
 })();

@@ -7,6 +7,16 @@ require_once 'htaccess.php';
 ?><!DOCTYPE html>
 <html>
 <head>
+
+	<!-- ------------------------------------------------
+    
+	                        matbox
+	
+	   Copyright 2014 Mukunda Johnson (www.mukunda.com)
+                     All rights reserved.
+	
+	------------------------------------------------- -->
+
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta charset="UTF-8">
 	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700,400italic' rel='stylesheet' type='text/css'>
@@ -19,14 +29,6 @@ require_once 'htaccess.php';
 		}
 		
 		AddScript( '//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js' );
-		/*
-		if( isset( $_GET['page'] ) ) {
-			$page = intval($_GET['page']);
-			if( $page != 0 ) {
-				echo '<script>window.GET = window.GET || {};
-					  GET.page = '.$page.';</script>';
-			}
-		}*/
 		
 		if( $DEBUG ) {
 			AddScript( 'js/jquery.mousewheel.min.js' );

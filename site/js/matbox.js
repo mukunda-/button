@@ -14,6 +14,10 @@ var m_compose_sending = false; // if we are busy trying to submit a
 								
 var m_page = 0; // what page we are on, old or not
 var m_page_state = "none";	// state of the page we are viewing
+var m_page_info = "";
+
+var m_last_link; // last link in the URL, used to track if the history
+				// should be pushed.
  
 var m_replytime = 0;		// last comment reply time, for helping determine
 							// if we should show the reply box again
@@ -277,11 +281,38 @@ function InitializePreLoad() {
 	matbox.ResetTopicVoted();
 	m_timeouts.ClearAll();
 	m_page_state = 'none';
+	m_info_page = "";
 	m_page = 0;
 }
 
 //-----------------------------------------------------------------------------
+function GetPageLink() {
+	if( m_page_state == "info" ) {
+		return m_page_info;
+	} else {
+		if( m_page_state == "old" ) {
+			return (m_page == 0) ? "" : m_page;
+		} 
+		return "";
+		/*
+		if( m_page_state == "live" ) return "";
+		if( m_page_state == "compose" ) return "";
+		if( m_page_state == "deleted" ) return "";*/
+	}
+}
+
+//-----------------------------------------------------------------------------
+function PushHistory() {
+	var h = GetPageLink();
+	if( m_last_link == h ) return;
+	m_last_link = h;
+	window.history.pushState( { link: h }, "matbox - the matter machine", h == "" ? '.' : h );
+}
+
+//-----------------------------------------------------------------------------
 function InitializePostLoad() {
+	PushHistory();
+	//if( m_page_state != '
 	
 	// replace image tags in topic
 	if( m_page_state == 'live' || m_page_state == 'old' ) {
@@ -323,7 +354,13 @@ function InitializePostLoad() {
 		ShowHelpButton();
 	} else {
 		matbox.Navbar.Hide();
-		HideHelpButton();
+		
+		if( m_page_state == "nonew" ) {
+			
+			ShowHelpButton();
+		} else {
+			HideHelpButton();
+		}
 	}
 	
 }
@@ -339,12 +376,20 @@ function HideHelpButton() {
 function GotoRandom() {
 	matbox.Loader.Load( "content.php", undefined, {random:"" } );
 	m_browsing_archive = true;
+	m_timeouts.Set( 
+		function () {
+			matbox.Navbar.Hide();
+		}, 250 );
 }
 
 
 function GotoNew() {
 	matbox.Loader.Load( "content.php" );
 	m_browsing_archive = false;
+	m_timeouts.Set( 
+		function () {
+			matbox.Navbar.Hide();
+		}, 250 );
 }
 
 function ShowHelp() {
@@ -415,7 +460,7 @@ $(document).bind('keydown', function(e) {
 //-----------------------------------------------------------------------------
 function ParsePageTag() {
 	var url = window.location.href;
-	var split = url.firstIndexOf( '?' );
+	var split = url.indexOf( '?' );
 	if( split != -1 ) {
 		url = url.substring( 0, split );
 	}
@@ -428,28 +473,38 @@ function ParsePageTag() {
 	}
 }
 
+function LoadPageFromTag( tag, delay, inithistory ) {
+	if( isSet(inithistory) && inithistory ) {
+		m_last_link = tag;
+		window.history.replaceState( 
+			{ link: tag }, "matbox - the matter machine", tag );
+	}
+	
+	if( tag == 'about' ) {
+		matbox.Loader.ForceLoad( 'about.php', delay );
+		if( inithistory ) {
+			m_last_link = tag;
+		}
+	} else if( tag == 'privacy' ) {
+		matbox.Loader.ForceLoad( 'privacy.php', delay );
+	
+	} else if( /^[0-9]+$/.test(tag) ) {
+		matbox.Loader.ForceLoad( 'content.php', delay,
+			{ page: tag } );
+	
+	} else {
+		m_last_link = 0;
+		matbox.Loader.ForceLoad( 'content.php', delay );
+	}
+}
+
 //-----------------------------------------------------------------------------
 $( function() { 
 	// load the initial content.
 	// check URL for matbox 
 	
 	var tag = ParsePageTag();
-	if( tag == 'about' ) {
-		matbox.Loader.Load( 'about.php', -200 );
-		return;
-	} else if( tag == 'privacy' ) {
-		matbox.Loader.Load( 'privacy.php', -200 );
-		return;
-	} else if( /^[0-9]+$/.test(tag) ) {
-		matbox.Loader.Load( 'content.php', -200,
-			{ page: tag };
-	}
-	if( window.location.hash ) {
-		matbox.Loader.Load( 'content.php', -200, 
-				{ page: window.location.hash.substring(1) } );
-	} else {
-		matbox.Loader.Load( 'content.php', -200 );
-	}
+	LoadPageFromTag( tag,-200, true );
 });
 /*
 //-----------------------------------------------------------------------------
@@ -460,27 +515,49 @@ $(window).bind('hashchange', function() {
 	}
 });*/
 
+window.onpopstate = function(event) {
+	//alert("location: " + document.location + ", state: " + JSON.stringify(event.state));
+	LoadPageFromTag( event.state.link, undefined, true );
+	
+	m_timeouts.Set( 
+		function () {
+			matbox.Navbar.Hide();
+		}, 250 );
+}
+
 // ****************************************************************************
 // exposure
 // ****************************************************************************
  
+ //-----------------------------------------------------------------------------
 matbox.SetPage = function( page, state ) {
 	m_page = page;
 	m_page_state = state;
 }
 
+//-----------------------------------------------------------------------------
+matbox.SetInfoPage = function( name ) {
+	m_page = 0;
+	m_page_state = "info";
+	m_page_info = name;
+}
+
+//-----------------------------------------------------------------------------
 matbox.GetPage = function() {
 	return m_page;
 }
 
+//-----------------------------------------------------------------------------
 matbox.GetPageState = function() {
 	return m_page_state;
 }
 
-window.matbox.RefreshFromNothing = function () { 
+//-----------------------------------------------------------------------------
+matbox.RefreshFromNothing = function () { 
 	matbox.Loader.RefreshContent();
 }
 
+//-----------------------------------------------------------------------------
 matbox.CompositionKeyPressed = CompositionKeyPressed;
 matbox.ReplyKeyPressed       = ReplyKeyPressed;
 matbox.SubmitComposition     = SubmitComposition;
