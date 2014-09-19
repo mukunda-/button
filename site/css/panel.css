@@ -1,0 +1,34 @@
+#content .panel {
+	
+	margin: auto;
+	text-align:center;
+	margin-top: 8px;
+	
+}
+
+#content .panel .button {
+	background-color: [WINDOW];
+	cursor: pointer;
+	
+	text-align:center;
+	padding: 4px 17px;
+	font-size: 0.8em; 
+	display: inline-block;
+	
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	transition: background-color 0.25s;
+}
+
+#content .panel .button:hover {
+	background-color: #fff;	
+	transition: background-color 0.25s;
+}
+#content .panel .button:active {
+	background-color: #eee;	
+	transition: background-color 0s;
+	box-shadow: 4px 6px 7px rgba(0,0,0,0.04), inset 0px 0px 4px rgba(0,0,0,0.5);
+}
