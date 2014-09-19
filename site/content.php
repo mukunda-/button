@@ -25,9 +25,10 @@ class Topic {
 		$result = $sql->safequery(
 			'SELECT Topics.account, state, goods, bads, time, content, vote FROM Topics 
 			LEFT JOIN TopicVotes ON (topicid=id AND TopicVotes.account='.$account->id.') 
-			WHERE id='.$account->page );
+			WHERE id='.$page );
 		
 		$row = $result->fetch_assoc();
+	
 		if( $row === FALSE ) return; 
 		$state = $row['state'];
 		if( $state == TopicStates::Live || $state == TopicStates::Composing ) {
@@ -40,7 +41,7 @@ class Topic {
 		$this->content = $row['content'];
 		$this->goods = $row['goods'];
 		$this->bads = $row['bads'];
-		$this->vote = is_null($row['vote']) ? null : ($row['vote'] == 1 ? TRUE:FALSE);
+		$this->vote = is_null($row['vote']) ? null : ( $row['vote'] == 1 ? TRUE:FALSE );
 		$this->time = $row['time'];
 		$this->valid = true;
 	}
@@ -98,6 +99,27 @@ function IsPageValid( $account ) {
 	return true;
 }
 
+//-----------------------------------------------------------------------------
+function GetRandomArchived() {
+	$sql = GetSQL();
+	
+	$result = $sql->safequery( "SHOW TABLE STATUS LIKE 'ArchiveIndex'" );
+	$row = $result->fetch_assoc();
+	$id = $row['Auto_increment'] - 1;
+	if( $id < 1 ) {
+		return 0;
+	}
+	
+	$id = mt_rand( 1, $id );
+	
+	$result = $sql->safequery( 
+		"SELECT page FROM ArchiveIndex WHERE id=$id" );
+	
+	$row = $result->fetch_row();
+	if( $row === FALSE ) return 0;
+
+	return $row[0];
+}
 
 //-----------------------------------------------------------------------------
 function GetNewPage() {
@@ -123,8 +145,8 @@ function GetNewPage() {
 			
 			// start new composition 
 			$sql->safequery( 
-				'INSERT INTO Topics ( account,state,goods,bads,time ) VALUES 
-				( '.$g_account->id.', '.TopicStates::Composing.', 0, 0, '.time().')' );
+				'INSERT INTO Topics ( account,state,time ) VALUES 
+				( '.$g_account->id.', '.TopicStates::Composing.', '.time().')' );
 	
 			$result = $sql->safequery( 'SELECT LAST_INSERT_ID()' );
 			$row = $result->fetch_row();
@@ -197,6 +219,10 @@ try {
 		$g_get_page = intval( $_GET['page'] );
 	}
 	
+	if( isset( $_GET['random'] ) ) {
+		$g_get_page = GetRandomArchived();
+	}
+	
 	if( $g_get_page == $g_account->page ) {
 		$g_get_page = 0;
 	}
@@ -216,10 +242,10 @@ try {
 	}
 } catch( Exception $e ) {
 	echo '
-			<div class="topic nothing" id="topic" ">
+			<div class="topic nothing clickable" id="topic" onclick="matbox.Loader.RefreshContent()">
 				something messed up.
 			</div>';
-	echo    '<div id="refresher" onclick="matbox.Loader.RefreshContent()"></div>';
+	
 	LogException( "getnewpage", $e );
 	
 	die();
@@ -263,7 +289,7 @@ function ShowTopic() {
 				no new matter.
 			</div>
 			<div class="panel">
-				<div class="button" onclick="matbox.OpenArchives()">archive</div> 
+				<div class="button" onclick="matbox.GotoRandom()">archive</div> 
 				<div class="button" onclick="matbox.Loader.RefreshContent()">check again</div>
 			</div>
 		<?php
@@ -284,6 +310,7 @@ function ShowTopic() {
 	
 	if( !$topic->valid ) {
 		?>
+			echo POOPOO;
 			<div class="topic nothing clickable" id="topic" onclick="matbox.Loader.RefreshContent()">
 				that sample doesn't exist
 			</div>
@@ -322,7 +349,7 @@ function ShowTopic() {
 	
 	$badstring = mt_rand( 0, 25 ) == 0 ? "cancer": "bad";
 	echo '<div class="topic" id="topic">';
-	echo $topic->content;
+	echo htmlspecialchars($topic->content); // todo, something better.
 	if( $topic->state == TopicStates::Live ) {
 		echo '<script>matbox.SetPage( '.$topic->id.', "live")</script>';
 		if( $topic->vote === true ) {

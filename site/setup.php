@@ -1,6 +1,7 @@
 <?php
 
 require_once "config.php";
+require_once "util.php";
 
 if( !isset($DEBUG) ) die();
 
@@ -16,6 +17,7 @@ $sql->safequery("DROP TABLE IF EXISTS Comments" );
 $sql->safequery("DROP TABLE IF EXISTS TopicVotes" );
 $sql->safequery("DROP TABLE IF EXISTS CommentVotes" );
 $sql->safequery("DROP TABLE IF EXISTS Accounts" );
+$sql->safequery("DROP TABLE IF EXISTS ArchiveIndex" );
 
 $sql->safequery(
 	"CREATE TABLE IF NOT EXISTS System ( 
@@ -32,8 +34,8 @@ $sql->safequery(
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		account INT NOT NULL,
 		state TINYINT NOT NULL, 
-		goods INT NOT NULL,
-		bads INT NOT NULL,
+		goods INT NOT NULL DEFAULT 0,
+		bads INT NOT NULL DEFAULT 0,
 		time INT NOT NULL,
 		content VARCHAR(200) NOT NULL )" );
 
@@ -46,7 +48,7 @@ $sql->safequery(
 		bads INT NOT NULL,
 		time INT NOT NULL,
 		content VARCHAR(200) NOT NULL,
-		INDEX USING BTREE(topic) )" );	
+		INDEX USING BTREE(topic) )" );
  
 $sql->safequery(
 	"CREATE TABLE IF NOT EXISTS TopicVotes (
@@ -58,7 +60,7 @@ $sql->safequery(
 $sql->safequery(
 	"CREATE TABLE IF NOT EXISTS CommentVotes (
 		commentid INT,
-		account INT,  
+		account INT,
 		vote BOOL,
 			PRIMARY KEY( commentid, account ) )" );	
 			
@@ -72,5 +74,36 @@ $sql->safequery(
 		lastreply INT NOT NULL DEFAULT 0,
 		lastcompose INT NOT NULL DEFAULT 0,
 		INDEX USING BTREE(ip) )" );
+		
+		
+$sql->safequery(
+	"CREATE TABLE IF NOT EXISTS ArchiveIndex (
+		id INT AUTO_INCREMENT PRIMARY KEY,
+		page INT NOT NULL )" );
+		
+
+//----------------------------------------------------------------------------
+function AddTestPage() {
+	$cont = "";
+	for( $i = 0; $i < 35; $i++ ) {
+		$cont .= chr( mt_rand(32,126) );
+	}
+	$sql = GetSQL();
+	$cont = $sql->real_escape_string( $cont );
+	$sql->safequery( 
+		"INSERT INTO Topics (account,state,time,content) 
+		VALUES ( 0,".TopicStates::Old.",".time().",'$cont' )" );
+		
+	$result = $sql->safequery( "SELECT LAST_INSERT_ID()" );
+	$row = $result->fetch_row();
+		
+	$sql->safequery(
+		"INSERT INTO ArchiveIndex (page) VALUES (".$row[0].")" );
+}
+
+//----------------------------------------------------------------------------
+for( $i = 0; $i < 35; $i++ ) {
+	AddTestPage();
+}
  
 ?>

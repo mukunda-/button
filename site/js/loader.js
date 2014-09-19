@@ -39,11 +39,11 @@ function FadeIn( content ) {
 	
 	output = $('#content');
 	$('#content').html( content );
-	
 	matbox.InitializePostLoad();
 	m_loading = false;
 	
 	matbox.AdjustSize();
+	$(window).scrollTop(0);
 	output.css( 'opacity', 1 ); // fade in
 }
 
@@ -96,7 +96,7 @@ this.Load = function( url, delay, get ) {
 			}
 		})
 		.fail( function() {
-			if( g_loading_fading_out ) {
+			if( m_fading_out ) {
 				m_page_content = PAGE_LOAD_FAILED_CONTENT;
 			} else {
 				FadeIn( PAGE_LOAD_FAILED_CONTENT );

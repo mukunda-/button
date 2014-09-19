@@ -10,7 +10,12 @@ body {
 	display:none;
 }
 
-.topic, .options>div, .replies .reply, .submit, .navigation .tab {
+.topic, .options>div, 
+.replies .reply, 
+.submit, 
+.navigation .tab, 
+.navbar,
+.panel .button {
 	
 	border-radius: 16px;
 	box-shadow: 4px 6px 7px rgba(0,0,0,0.04);
@@ -54,13 +59,15 @@ body {
 }
 
 .padding {
-	width: 100%;
+	width: 5%;
+    pointer-events: none;
 }
 
 #content {
 	opacity : 0;
 	transition: opacity 0.5s;
 }
+
 
 .topic_text_adjust, .comment_text_adjust {
 	position: relative;

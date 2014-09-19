@@ -8,8 +8,7 @@ require_once 'minify.php';
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta charset="UTF-8">
-	
-	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700,400italic' rel='stylesheet' type='text/css'>
 
 	<link rel="stylesheet" href="min/style.min.css" type="text/css">
 	
@@ -48,6 +47,7 @@ require_once 'minify.php';
 </head>
 <body>	
 	<div id="magicbox"></div>
+	<div id="help" onclick="matbox.ShowHelp()">?</div>
 	<div id="content">
 		
 	</div>

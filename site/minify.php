@@ -16,7 +16,9 @@ $CSS_FILES = array(
 	'css/navbar.css',
 	'css/topic.css',
 	'css/replies.css',
-	'css/rankcolors.css'
+	'css/rankcolors.css',
+	'css/help.css',
+	'css/panel.css'
 );
 
 $CSS_OUT = "min/style.min.css";

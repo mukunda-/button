@@ -1,0 +1,39 @@
+
+#help {
+	width: 26px;
+	height: 26px;
+	border-radius: 12px;
+	position: fixed;
+	right: 4px;
+	bottom: 4px;
+	background-color: #111119;
+	opacity: 0;
+	color: [BGCOLOR];
+	text-align:center;
+	font-size: 18px;
+	font-weight: bold;
+	transition: opacity 1s;
+	cursor: default;
+	[NOUSERSELECT]
+}
+
+#help.show {
+	transition: opacity 1s;
+	opacity: 0.2;
+	
+	cursor: pointer;
+}
+ 
+#help.show:hover {
+	opacity: 0.8;
+	transition: opacity 0.25s;
+	/*background-position: -32px 0px;*/
+}
+ 
+#help.show:active {
+
+	opacity: 1;
+	bottom: 3px;
+	transition: opacity 0s;
+	/*background-position: -32px 0px;*/
+}

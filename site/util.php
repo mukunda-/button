@@ -170,7 +170,7 @@ function FinalizeTopic( $id ) {
 	$sql = GetSQL();
 	$sql->safequery( 
 			"LOCK TABLES ".
-			"Topics WRITE, Comments WRITE, CommentVotes READ" );
+			"Topics WRITE, Comments WRITE, CommentVotes READ, ArchiveIndex WRITE" );
 	
 	$sql->safequery(
 			"UPDATE Topics SET state=".TopicStates::Old.
@@ -181,6 +181,8 @@ function FinalizeTopic( $id ) {
 		$sql->safequery( "UNLOCK TABLES" );
 		return;
 	}
+	
+	$sql->safequery( "INSERT INTO ArchiveIndex (page) VALUES ($id)" );
 	
 	// get total of comment votes and assign them to the 
 	// comment entries
@@ -241,12 +243,12 @@ function CheckTopicExpired( $id ) {
 	
 	$row = $result->fetch_row();
 	if( $row === FALSE ) {
-		throw new Exception( "Invalid page." );
+		throw new Exception( 'Invalid page.' );
 	}
 	if( $row[0] == TopicStates::Old ) return 2;
 	if( $row[0] == TopicStates::Deleted ) return 1;
 	if( $row[0] != TopicStates::Live ) {
-		throw new Exception( "Invalid page." );
+		throw new Exception( 'Invalid page.' );
 	}
 	return CheckTopicExpired2( $id, $row[1], $row[2], $row[3] );
 }

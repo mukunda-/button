@@ -8,7 +8,10 @@
 
 // returns:
 // "error" - if the arguments are invalid or an error occurs
+// "deleted" - the topic requested was just buried.
 // "expired" - if the live version expires and needs a full refresh
+// "wrongpage" - a live page is requested, but the user's account isn't
+//               on that page.
 // comments data - if the topic is still live, the comment data is returned
 //  in json format
 //  only returns comments with IDs greater than the 'last' param
@@ -24,33 +27,21 @@ try {
 	if( !isset( $_GET['page'] ) ) {
 		exit( 'error' );
 	}
+	$page =intval( $_GET['page'] );
+	if( $page <= 0 ) {	
+		exit( 'error' );
+	}
 	$lastid = 0;
 	if( isset( $_GET['last'] ) ) {
 		$lastid = intval($_GET['last']);
 	}
 	$old = isset( $_GET['old'] );
 	$g_account = LogIn();
-	if( $g_account->page != $_GET['page'] ) {
-		exit( 'wrongpage' );
-	}
-	
-	$expired = CheckTopicExpired( $g_account->page );
-	if( $expired == 1 ) {
-		exit( 'deleted' );
-	} else if( $expired == 2 ) {
-		if( !$old ) {
-			exit( 'expired' );
-		}
-	} else {
-		if( $old ) {
-			exit( 'error' );
-		}
-	}
-	
+	 
 	$sql = GetSQL();
 	
 	$result = $sql->safequery(
-		'SELECT state FROM Topics WHERE id='.$g_account->page );
+		'SELECT state FROM Topics WHERE id='.$page );
 	
 	$row = $result->fetch_row();
 	$state = 0;
@@ -62,13 +53,36 @@ try {
 				$state != TopicStates::Old ) {
 			exit( 'error' );
 		}
+		
+		if( $state == TopicStates::Live ) {
+			if( $g_account->page != $page ) {
+				exit( 'wrongpage' );
+			}
+			
+			$expired = CheckTopicExpired( $g_account->page );
+			if( $expired == 1 ) {
+				exit( 'deleted' );
+			} else if( $expired == 2 ) {
+				if( !$old ) {
+					exit( 'expired' );
+				}
+			} else {
+				if( $old ) {
+					exit( 'error' );
+				}
+			}
+		} else if( $state == TopicStates::Old ) {
+			if( !$old ) {
+				exit( 'error' );
+			}
+		}
 	}
 	
 	$result = $sql->safequery( 
 		'SELECT id, content, goods, bads, vote FROM Comments 
 		LEFT JOIN CommentVotes 
 		ON (commentid=id AND CommentVotes.account='.$g_account->id.')
-		WHERE topic='.$g_account->page.' AND id > '.$lastid );
+		WHERE topic='.$page.' AND id > '.$lastid );
 	
 	$output = array();
 	while( $row = $result->fetch_assoc() ) {

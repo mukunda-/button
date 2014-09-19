@@ -140,7 +140,6 @@ function SubmitComment() {
 			{ text: content, page: m_page } ))
 						   
 		.done( function( data ) {
-			var reopeninput = false;
 			
 			if( data == 'error' ) {
 				alert( 'couldn\'t post comment.' );
@@ -272,10 +271,13 @@ function ScoreRankName( a ) {
 
 //-----------------------------------------------------------------------------
 function InitializePreLoad() {
+	matbox.Navbar.Hide();
 	matbox.LiveRefresh.Reset();
 	m_compose_sending = false; 
 	matbox.ResetTopicVoted();
 	m_timeouts.ClearAll();
+	m_page_state = 'none';
+	m_page = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -299,14 +301,59 @@ function InitializePostLoad() {
 				if( matbox.Loader.IsLoading() ) return false;
 				setTimeout( matbox.ReplyKeyPressed, 0 );
 			});
+			
 		}
 		
 		matbox.LiveRefresh.Refresh();
+		
+		if( m_page_state == 'live' ) {
+			m_timeouts.Set( function () {
+				matbox.Navbar.Show( [ 
+					{ caption: "archive", onclick: GotoRandom }
+				] );
+			}, 2000 );
+		} else if( m_page_state == 'old' ) {
+		
+			matbox.Navbar.Show( [ 
+				{ caption: "sample #" + m_page },
+				{ caption: "random", onclick: GotoRandom },
+				{ caption: "new", onclick: GotoNew }
+			] );
+		}
+		ShowHelpButton();
+	} else {
+		matbox.Navbar.Hide();
+		HideHelpButton();
 	}
 	
-	matbox.Navbar.Show( [
-			{ caption: 'test', onclick: 'testes()' }
-		] );
+}
+
+function ShowHelpButton() {
+	$("#help").addClass( "show" );
+}
+
+function HideHelpButton() {
+	$("#help").removeClass( "show" );
+}
+
+function GotoRandom() {
+	matbox.Loader.Load( "content.php", undefined, {random:"" } );
+	m_browsing_archive = true;
+}
+
+
+function GotoNew() {
+	matbox.Loader.Load( "content.php" );
+	m_browsing_archive = false;
+}
+
+function ShowHelp() {
+	if( $("#help").hasClass( "show" ) ) {
+		if( !matbox.Loader.IsLoading() ) {
+			matbox.Loader.Load( "about.php" );
+			HideHelpButton();
+		} 
+	}
 }
  
 /******************************************************************************
@@ -352,7 +399,11 @@ $(document).bind('keydown', function(e) {
 		
 		//if( g_loading ) return false; (already checked from the outside)
 		
-		matbox.Loader.RefreshContent();
+		if( m_browsing_archive ) {
+			GotoRandom();
+		} else {
+			matbox.Loader.RefreshContent();
+		}
 		
 		return false;
     }
@@ -413,6 +464,9 @@ matbox.CloseOld				 = CloseOld;
 
 matbox.InitializePreLoad     = InitializePreLoad;
 matbox.InitializePostLoad    = InitializePostLoad;
+
+matbox.GotoRandom			 = GotoRandom;
+matbox.ShowHelp				 = ShowHelp;
 
 })();
 
