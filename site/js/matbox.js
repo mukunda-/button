@@ -86,6 +86,12 @@ function SubmitComposition() {
 	//$("#composition").removeClass('composing');
 	HideSubmit(); 
 	
+	function reopeninput() {
+		m_compose_sending = false;
+		$( "#replyinput" ).attr( 'contentEditable', true ); 
+		ShowSubmit( $("#composition") );
+	}
+	
 	m_timeouts.AddAjax( 
 		$.post( "compose.php", 
 			{ text: content, page: m_page } ))
@@ -94,15 +100,15 @@ function SubmitComposition() {
 			
 			if( data == 'error' ) {
 				alert( 'couldn\'t post topic.' );
-				m_compose_sending = false; 
-				$( "#composition" ).attr( 'contentEditable', true ); 
-				ShowSubmit( $("#composition") );
+				reopeninput();
 			} else if( data == 'expired' ) {
 				matbox.Loader.Load( 'error.php?expired' );
 			} else if( data == 'empty' ) {
-				matbox.Loader.Load( 'error.php?emptycomposition' );
+				alert( 'please enter some text.' );
+				reopeninput();
 			} else if( data == 'toolong' ) {
-				matbox.Loader.Load( 'error.php?toolong' );
+				alert( 'that is too long.' );
+				reopeninput();
 			} else if( data == 'wrongpage' ) {
 				matbox.Loader.Load( 'error.php?messedup' );
 			} else {
@@ -113,10 +119,7 @@ function SubmitComposition() {
 			if( handle.ag_cancelled ) return;
 			
 			alert( 'couldn\'t post topic.' );
-			
-			m_compose_sending = false;
-			$( "#replyinput" ).attr( 'contentEditable', true ); 
-			ShowSubmit( $("#composition") );
+			reopeninput();
 		});
 }
 

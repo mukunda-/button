@@ -11,7 +11,7 @@
 	sharing your ip. we try to be as transparent as possible, but keeping this data
 	is required for us to prevent abuse.</p>
 	
-	<p>when you connect to matbox, an anonymous account will be created for your ip.
+	<p>when you connect to matbox, an anonymous identity will be created for your ip.
 	matbox promises to not share your ip with anyone.</p>
 	
 	<div class="panel">

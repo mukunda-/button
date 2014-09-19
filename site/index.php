@@ -31,7 +31,7 @@ require_once 'htaccess.php';
 		
 		AddScript( '//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js' );
 		
-		if( $DEBUG ) {
+		if( isset($DEBUG) && $DEBUG ) {
 			AddScript( 'js/jquery.mousewheel.min.js' );
 			AddScript( 'js/asyncgroup.js' );
 			AddScript( 'js/matbox.js' );

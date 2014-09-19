@@ -3,7 +3,7 @@
 require_once "config.php";
 require_once "util.php";
 
-if( !isset($DEBUG) ) die();
+if( !isset($DEBUG) || (!$DEBUG) ) die();
 
 require_once "sql.php";
 
