@@ -5,7 +5,7 @@
 	
 	<p>the matter machine</p>
 	
-	<p>welcome. load the page and you will be presented with <b>matter</b>. 
+	<p>hello. load the page and you will be presented with <b>matter</b>. 
 	put a <b>star</b> on the matter or press the <b>X</b> to make it go away. if you star
 	matter you will not be able to analyse other new matter until it
 	becomes <b>old</b>. create submatter by typing in the box below the matter. </p>

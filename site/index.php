@@ -16,9 +16,10 @@ require_once 'htaccess.php';
                      All rights reserved.
 	
 	------------------------------------------------- -->
-
+	
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta charset="UTF-8">
+	<link rel="shortcut icon" href="/favicon.png">
 	<link href='http://fonts.googleapis.com/css?family=Noto+Sans:400,700,400italic' rel='stylesheet' type='text/css'>
 
 	<link rel="stylesheet" href="min/style.min.css" type="text/css">

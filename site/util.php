@@ -203,9 +203,15 @@ function FinalizeTopic( $id ) {
 
 //-----------------------------------------------------------------------------
 function CheckTopicExpired2( $id, $goods, $bads, $time ) {
+	global $SCORE_RAMP_CONSTANT;
+	// this is only called on LIVE topics.
+	
 	$score = GetScore( $goods, $bads );
 	$removetime = 0; 
 	$delete = false;
+	
+	$total = $goods+$bads;
+	if( $total == 0 ) return; // no votes, keep forever !:)
 	
 	if( $score < 55 ) {
 		// under score 55, delete after 5 minutes
@@ -215,6 +221,11 @@ function CheckTopicExpired2( $id, $goods, $bads, $time ) {
 	} else {
 		// "old" after 30 minutes
 		$removetime = $GLOBALS['OLD_TIME'];
+	}
+	
+	if( $total < $SCORE_RAMP_CONSTANT ) {
+		// adjust removal time to be longer if total votes are low
+		$removetime = $removetime * ($SCORE_RAMP_CONSTANT/$total) * 3 - $removetime*2;
 	}
 	
 	if( time() >= ($time + $removetime) ) {

@@ -445,7 +445,8 @@ $(document).bind('keydown', function(e) {
 		if( m_browsing_archive ) {
 			GotoRandom();
 		} else {
-			matbox.Loader.RefreshContent();
+			GotoNew();
+			
 		}
 		
 		return false;
