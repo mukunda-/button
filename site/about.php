@@ -17,7 +17,7 @@
 	
 	if matter ends up with a rating of 99, 
 	it is the <b>Perfect Matter</b>. we have been searching for the
-	Perfect Matter for the last 400,000 years. please help us find it.</p>
+	Perfect Matter for over 400,000 years. please help us find it.</p>
 	
 	
 	<div class="panel">
