@@ -88,7 +88,7 @@ try {
 	while( $row = $result->fetch_assoc() ) {
 		
 		$a = array();
-		$a['id'] = $row['id'];
+		$a['id'] = (int)$row['id'];
 		$a['content'] = $row['content'];
 		$a['vote'] = is_null($row['vote']) ? NULL : ((boolean)$row['vote']);
 		if( $state == TopicStates::Old ) {
