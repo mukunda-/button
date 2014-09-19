@@ -317,10 +317,17 @@ function InitializePostLoad() {
 	PushHistory();
 	//if( m_page_state != '
 	
-	// replace image tags in topic
+	
 	if( m_page_state == 'live' || m_page_state == 'old' ) {
-		// do live refresh?
 		
+		// replace embed tags
+		// /\[.*?\]
+		
+	//	var html = 
+		//var start = 0, end = 0;
+	//	for( ;; ) {
+	//		start = 
+	//	}
 		
 		if( m_page_state == 'live' ) {
 			// hook reply input

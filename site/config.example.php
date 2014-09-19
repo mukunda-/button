@@ -4,7 +4,7 @@
 // ie /button/site/
 $apath = rtrim(dirname($_SERVER['PHP_SELF']), '/\\').'/'; 
 
-$SLOTS = 5; // number of discussions that can be performed
+$SLOTS = 1; // number of discussions that can be performed
             // concurrently.
 
 $COMPOSE_TIMEOUT = 60*5+4; // number of seconds a composition

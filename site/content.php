@@ -271,7 +271,55 @@ function ScoreRankName( $a ) {
 	if( $a < 99 ) return "great";
 	return "LEGENDARY";
 }
+
+//-----------------------------------------------------------------------------
+function FormatEmbedded( $e ) {
+	// only images supporte for now.
+	if( strlen($e) > 256 ) return "";
+	$e = str_replace( '"', '', $e );
+	$e = str_replace( "\r", '', $e );
+	$e = str_replace( "\n", '', $e );
+	return '<img src="'.$e.'">';
+}
+
+//-----------------------------------------------------------------------------
+function ReplaceEmbeds( $content ) {
+	$embeds = array();
 	
+	//$content = htmlspecialchars( $content );
+	// this is already done during sanitization.
+	
+	$start = 0;
+	for( $max = 10; $max; $max-- ) {
+		$start = strpos( $content, '[' );
+		if( $start === FALSE ) break;
+		$end = strpos( $content, ']', $start );
+		if( $end === FALSE ) break;
+		
+		$embeds[] = array(
+			"pos" => $start,
+			"url" => substr( $content,
+				$start + 1, 
+				$end-$start - 1 )
+		);
+		$content = substr_replace( $content, '', $start, $end-$start+1 );
+	}
+	
+	
+	$offset = 0;
+	foreach( $embeds as $e ) {
+		$sub = FormatEmbedded($e['url']);
+		 
+		$len = strlen( $sub );
+		if( $len > 0 ) { 
+			$content = substr_replace( $content, $sub, $offset + $e['pos'], 0 );
+			$offset += $len;
+		}
+	}
+	return $content;
+}
+
+//-----------------------------------------------------------------------------	
 function ShowTopic() {
 	global $g_account, $g_get_page;
 	
@@ -350,7 +398,11 @@ function ShowTopic() {
 	
 	$badstring = mt_rand( 0, 25 ) == 0 ? "cancer": "bad";
 	echo '<div class="topic" id="topic">';
-	echo htmlspecialchars($topic->content); // todo, something better.
+	
+	// replace embed tags
+	$content = ReplaceEmbeds( $topic->content );
+	
+	echo $content; 
 	if( $topic->state == TopicStates::Live ) {
 		echo '<script>matbox.SetPage( '.$topic->id.', "live")</script>';
 		if( $topic->vote === true ) {
