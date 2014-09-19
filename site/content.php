@@ -279,15 +279,16 @@ function FormatEmbedded( $e ) {
 	$e = str_replace( '"', '', $e );
 	$e = str_replace( "\r", '', $e );
 	$e = str_replace( "\n", '', $e );
-	return '<img src="'.$e.'">';
+	return '<div class="embedded_image"><img src="'.$e.'"></div>';
 }
 
 //-----------------------------------------------------------------------------
 function ReplaceEmbeds( $content ) {
 	$embeds = array();
 	
-	//$content = htmlspecialchars( $content );
-	// this is already done during sanitization.
+	$content = htmlspecialchars( $content );
+	// this is already done during sanitization. but just in case again
+	// here if there is some poop in the database.
 	
 	$start = 0;
 	for( $max = 10; $max; $max-- ) {
@@ -406,21 +407,21 @@ function ShowTopic() {
 	if( $topic->state == TopicStates::Live ) {
 		echo '<script>matbox.SetPage( '.$topic->id.', "live")</script>';
 		if( $topic->vote === true ) {
-			echo '<div class="good" id="goodbutton"><img src="star.png" alt="good" title="good"></div>';
-			echo '<div class="bad" id="badbutton"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
+			echo '<div class="good" id="goodbutton"><div class="speshul_table"><div><img src="star.png" title="good"></div></div></div>';
+			echo '<div class="bad" id="badbutton"><div class="speshul_table"><div><img src="notbad.png" title="'.$badstring.'"></div></div></div>';
 		} else if( $topic->vote === false ) {
-			echo '<div class="good" id="goodbutton"><img src="unstar.png" alt="good" title="good"></div>';
-			echo '<div class="bad" id="badbutton"><img src="bad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
+			echo '<div class="good" id="goodbutton"><div class="speshul_table"><div><img src="unstar.png" title="good"></div></div></div>';
+			echo '<div class="bad" id="badbutton"><div class="speshul_table"><div><img src="bad.png" title="'.$badstring.'"></div></div></div>';
 		} else {
-			echo '<div class="good clickable" id="goodbutton" onclick="matbox.VoteTopicGood()"><img src="unstar.png" alt="good" title="good"></div>';
-			echo '<div class="bad clickable" id="badbutton" onclick="matbox.VoteTopicBad()"><img src="notbad.png" alt="'.$badstring.'" title="'.$badstring.'"></div>';
+			echo '<div class="good clickable" id="goodbutton" ><div class="speshul_table"><div><img src="unstar.png" title="good" onclick="matbox.VoteTopicGood()"></div></div></div>';
+			echo '<div class="bad clickable" id="badbutton" ><div class="speshul_table"><div><img src="notbad.png" title="'.$badstring.'" onclick="matbox.VoteTopicBad()"></div></div></div>';
 		}
 		
 	} else if( $topic->state == TopicStates::Old ) {
 		echo '<script>matbox.SetPage( '.$topic->id.',"old" )</script>';
 		// print score
 		$score = GetScore($topic->goods,$topic->bads);
-		echo '<div class="score '.ScoreRank($score).'" id="scorediv" title="'.ScoreRankName($score).'">'.$score.'</div>';
+		echo '<div class="score '.ScoreRank($score).'" id="scorediv" title="'.ScoreRankName($score).'"><div class="speshul_table"><div>'.$score.'</div></div></div>';
 		/*echo '<div class="new" id="newbutton" onclick="matbox.CloseOld()"></div>';*/
 	}
 	echo '</div>';

@@ -11,11 +11,11 @@ function AdjustTop() {
 		+ parseInt(poop.css('padding-bottom'));
 	var sh = $( window ).height();
 	
-	$("#goodbutton").css( "top", (height / 2 - 16) + "px" );
-	$("#badbutton").css( "top", (height / 2 - 16) + "px" );
+//	$("#goodbutton").css( "top", (height / 2 - 16) + "px" );
+//	$("#badbutton").css( "top", (height / 2 - 16) + "px" );
 	
-	$("#scorediv").css( "top", (height / 2 - 16) + "px" );
-	$("#newbutton").css( "top", (height / 2 - 16) + "px" );
+//	$("#scorediv").css( "top", (height / 2 - 16) + "px" );
+//	$("#newbutton").css( "top", (height / 2 - 16) + "px" );
 	height += 16; // body margin
 	var margin = ((sh/2)-(height/2));
 	if( margin < 32 ) {
@@ -45,6 +45,7 @@ function AdjustSize() {
 	if( content_width < 32 ) content_width = 32;
 	
 	$( '.replies .reply' ).css( 'max-width', content_width + 'px' );
+	$( '.topic .embedded_image img' ).css( 'max-width', (content_width-32) + 'px' );
 }
 
 matbox.AdjustSize   = AdjustSize;

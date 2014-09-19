@@ -1,0 +1,14 @@
+
+.topic .embedded_image img {
+	width: 16px;
+	vertical-align: middle;
+	border-radius: 6px;
+	transition: width 0.25s;
+}
+
+.topic .embedded_image {
+	min-width: 48px;
+	min-height: 48px;
+	display: inline-block;
+	cursor:pointer;
+}

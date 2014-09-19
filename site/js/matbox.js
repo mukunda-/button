@@ -328,6 +328,41 @@ function InitializePostLoad() {
 	//	for( ;; ) {
 	//		start = 
 	//	}
+	
+	
+		$("#topic .embedded_image img").load( function() { 
+			matbox.AdjustSize();
+			
+		} );
+		
+		$("#topic .embedded_image").click( function() {
+			var img = $(this).children('img');
+			var count = img.data('ecount') || 0;
+			var maxout = 5;
+			
+			if( count == maxout ) return;
+			
+			var lasttime = img.data('elastclick') || 0;
+			var curtime = GetTime();
+			if( curtime < lasttime + 300 ) {
+				count = maxout;
+			} else {
+				count++;
+			}
+			img.data( 'elastclick', curtime );
+			
+			if( count == maxout ) {
+				img.css( 'cursor', 'default' );
+			}
+			img.data('ecount',count);
+			
+			//var width = parseInt( img.css( 'width' ) );
+			var width = 16 * Math.pow( 2, count );
+			if( width > 700 ) width = 700;
+			img.css('width', width+"px");
+			m_timeouts.Set( matbox.AdjustSize, 300 );
+			
+		} );
 		
 		if( m_page_state == 'live' ) {
 			// hook reply input
@@ -385,6 +420,7 @@ function HideHelpButton() {
 
 function GotoRandom() {
 	matbox.Loader.Load( "content.php", undefined, {random:"" } );
+	HideHelpButton();
 	m_browsing_archive = true;
 	m_timeouts.Set( 
 		function () {
@@ -395,6 +431,7 @@ function GotoRandom() {
 
 function GotoNew() {
 	matbox.Loader.Load( "content.php" );
+	HideHelpButton();
 	m_browsing_archive = false;
 	m_timeouts.Set( 
 		function () {
@@ -407,6 +444,7 @@ function ShowHelp() {
 		if( !matbox.Loader.IsLoading() ) {
 			matbox.Loader.Load( "about.php" );
 			HideHelpButton();
+			matbox.Navbar.Hide();
 		} 
 	}
 }
@@ -535,6 +573,7 @@ window.onpopstate = function(event) {
 			matbox.Navbar.Hide();
 		}, 250 );
 }
+
 
 // ****************************************************************************
 // exposure

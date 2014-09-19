@@ -10,6 +10,9 @@
 	margin:auto;
 	text-align:center;
 	word-wrap:break-word;
+	
+	
+	transition:margin-top 1s;
 }
 
 .topic  .compose {
@@ -38,26 +41,26 @@
 .topic .good {
 	position: absolute;
 	left: 12px;
-	top: 4px;
-	width: 32px;
-	height: 32px; 
-	font-size:6px;
+	top: 0px;
+	height: 100%;
+	
+	font-size:8px;
 }
 .topic .bad, .topic .new {
 	position: absolute;
 	right: 12px;
-	top: 4px;
-	width: 32px;
-	height: 32px; 
-	font-size:6px;
+	top: 0px;
+	height: 100%;
+	font-size:8px;
 }
 
 .topic .score {
 	position: absolute;
 	left: 12px;
-	top: 4px; 
+	top: 0px; 
 	font-size: 23px;
 	font-weight: bold;
+	height: 100%;
 }
 
 .topic .new {
@@ -84,4 +87,14 @@
 
 .topic .good:hover {
 	
+}
+
+.topic .speshul_table {
+    display:table;
+    height: 100%;
+}
+
+.topic .speshul_table>div {
+    display:table-cell;
+    vertical-align: middle;
 }

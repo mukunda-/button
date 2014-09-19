@@ -51,6 +51,7 @@ require_once 'htaccess.php';
 </head>
 <body>	
 	<div id="magicbox"></div>
+	<div id="loader_window" class="hidden"><div id="loader"><img src="ajax-loader.gif"></div></div>
 	<div id="help" onclick="matbox.ShowHelp()">?</div>
 	<div id="content">
 		

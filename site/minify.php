@@ -18,7 +18,8 @@ $CSS_FILES = array(
 	'css/replies.css',
 	'css/rankcolors.css',
 	'css/help.css',
-	'css/panel.css'
+	'css/panel.css',
+	'css/image.css'
 );
 
 $CSS_OUT = "min/style.min.css";

@@ -23,6 +23,8 @@ var m_page_content = null; //
 
 var m_ag = AsyncGroup.Create();
 
+var m_icontimeout = AsyncGroup.Create();
+
 // error content when the ajax fails:
 var PAGE_LOAD_FAILED_CONTENT = 
 	'<div class="topic nothing" id="topic">'+
@@ -35,7 +37,9 @@ var PAGE_LOAD_FAILED_CONTENT =
  * @param content Content to insert into #content.
  *
  */
-function FadeIn( content ) {	
+function FadeIn( content ) {
+	HideLoadingIcon();
+	
 	// global initialization here:
 	matbox.InitializePreLoad();
 	
@@ -47,6 +51,25 @@ function FadeIn( content ) {
 	matbox.AdjustSize();
 	$(window).scrollTop(0);
 	output.css( 'opacity', 1 ); // fade in
+}
+
+//-----------------------------------------------------------------------------
+function ShowLoadingIcon() {
+	m_icontimeout.ClearAll();
+	$("#loader_window").removeClass( "hidden" );
+	m_icontimeout.Set( function() {
+		$("#loader_window").addClass( "fadein" );
+	},100);
+	
+}
+
+//-----------------------------------------------------------------------------
+function HideLoadingIcon() {
+	m_icontimeout.ClearAll();
+	$("#loader_window").removeClass( "fadein" );
+	m_icontimeout.Set( function() {
+		$("#loader_window").addClass( "hidden" );
+	}, 1000 );
 }
 
 /** ---------------------------------------------------------------------------
@@ -72,6 +95,8 @@ this.Load = function( url, delay, get ) {
 	output.css( 'opacity', 0 ); // fade out
 	
 	m_fading_out = true;
+	
+	m_icontimeout.Set( ShowLoadingIcon, 2000 );
 	
 	// whichever one of these finishes first (fadeout/ajax)
 	// thats the one that sets the content and fades in
