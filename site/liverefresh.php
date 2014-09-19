@@ -117,6 +117,13 @@ try {
 		usort( $output, "ScoreCmp2" );
 		
 	} else if( $state == TopicStates::Live ) {
+	
+		// filter out downvoted comments
+		foreach( $output as $key => $value ) {
+			if( $value['vote'] === FALSE ) {
+				unset( $output[$key] );
+			}
+		}
 		// sort randomly
 		shuffle( $output );
 	}

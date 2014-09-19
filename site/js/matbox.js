@@ -397,8 +397,6 @@ $(document).bind('keydown', function(e) {
     if( (e.which === 116) || (e.which === 82 && e.ctrlKey) ) {
 		// catch F5 and Ctrl+R reloads, make it do an internal reload.
 		
-		//if( g_loading ) return false; (already checked from the outside)
-		
 		if( m_browsing_archive ) {
 			GotoRandom();
 		} else {
@@ -415,10 +413,37 @@ $(document).bind('keydown', function(e) {
 });
 
 //-----------------------------------------------------------------------------
+function ParsePageTag() {
+	var url = window.location.href;
+	var split = url.firstIndexOf( '?' );
+	if( split != -1 ) {
+		url = url.substring( 0, split );
+	}
+	
+	split = url.lastIndexOf( '/' );
+	if( split != -1 ) {
+		return url.substring( split+1 );
+	} else {
+		return "";
+	}
+}
+
+//-----------------------------------------------------------------------------
 $( function() { 
 	// load the initial content.
 	// check URL for matbox 
 	
+	var tag = ParsePageTag();
+	if( tag == 'about' ) {
+		matbox.Loader.Load( 'about.php', -200 );
+		return;
+	} else if( tag == 'privacy' ) {
+		matbox.Loader.Load( 'privacy.php', -200 );
+		return;
+	} else if( /^[0-9]+$/.test(tag) ) {
+		matbox.Loader.Load( 'content.php', -200,
+			{ page: tag };
+	}
 	if( window.location.hash ) {
 		matbox.Loader.Load( 'content.php', -200, 
 				{ page: window.location.hash.substring(1) } );
@@ -426,14 +451,14 @@ $( function() {
 		matbox.Loader.Load( 'content.php', -200 );
 	}
 });
-
+/*
 //-----------------------------------------------------------------------------
 $(window).bind('hashchange', function() {
 	if( window.location.hash ) {
 		matbox.Loader.Load( 'content.php', undefined, 
 				{ page: window.location.hash.substring(1) } );
 	}
-});
+});*/
 
 // ****************************************************************************
 // exposure

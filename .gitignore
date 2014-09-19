@@ -4,3 +4,4 @@ site/config.php
 ignored
 site/logs
 site/min
+site/.htaccess

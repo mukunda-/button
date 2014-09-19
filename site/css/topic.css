@@ -76,7 +76,10 @@
 }
 
 .clickable {
-	cursor:pointer;
+	cursor: pointer;
+}
+.topic.nothing.clickable {
+	cursor: pointer;
 }
 
 .topic .good:hover {

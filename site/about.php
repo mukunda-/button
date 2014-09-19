@@ -11,17 +11,15 @@
 	<p>if you are lucky, you will be presented with the composition page. 
 	you may then <b>compose</b> your own matter for analysis.</p>
 	
-	<p>matter gets old after a while. old matter cannot be further analysed, 
-	and bad matter gets buried. 
-	if matter ends up with a rating of 99, 
-	it is the <b>Mythic Matter</b>. my people have been in search of the 
-	Mythic Matter for the last 400,000 years. please help us find it.</p>
+	<p>when matter gets <b>old</b>, it cannot be processed further, and it's moved to the archive for research or buried if it's useless.
 	
-	<p>by the way, to embed content in your matter, surround the URL in brackets. 
-	images appear as tiny cells at first, click on them to use your microscope.</p>
+	if matter ends up with a rating of 99, 
+	it is the <b>Perfect Matter</b>. we have been searching for the
+	Perfect Matter for the last 400,000 years. please help us find it.</p>
+	
 	
 	<div class="panel">
-		<div class="button" onclick="matbox.Loader.RefreshContent()">okay.</div> 
+		<div class="button" onclick="matbox.Loader.RefreshContent()">okay..</div> 
 		<div class="button" onclick="matbox.Loader.Load('privacy.php')">privacy policy</div>
 	</div>
 </div>
