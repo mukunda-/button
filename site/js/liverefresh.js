@@ -84,7 +84,7 @@ function ChainFadeComments( start, end ) {
 
 //-----------------------------------------------------------------------------
 function OnAjaxDone( data ) { 
-	alert(data);
+	
 	if( data == 'error' ) {
 		DequeueNext();
 		return;
