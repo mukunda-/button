@@ -102,7 +102,7 @@ try {
 	
 		foreach( $output as $key => $value ) {
 			$score = GetScore( $value['goods'], $value['bads'] );
-			if( $score < 50 ) {
+			if( $score < $GLOBALS['COMMENT_BURY_SCORE'] ) {
 				// filter out shit scores.
 				unset( $output[$key] );
 			} else {

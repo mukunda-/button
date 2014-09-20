@@ -12,6 +12,7 @@ $COMPOSE_TIMEOUT = 60*5+4; // number of seconds a composition
 						 // deleted
 						 
 $BURY_SCORE = 15; // 55 
+$COMMENT_BURY_SCORE = 15; // 50
  
 $BURY_TIME = 60*5; // time before a topic is buried (below score threshold)
 $OLD_TIME = 60*30; // time before a topic is olded (above score threshold)

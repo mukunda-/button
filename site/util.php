@@ -203,7 +203,7 @@ function FinalizeTopic( $id ) {
 
 //-----------------------------------------------------------------------------
 function CheckTopicExpired2( $id, $goods, $bads, $time ) {
-	global $SCORE_RAMP_CONSTANT;
+	global $SCORE_RAMP_CONSTANT, $BURY_SCORE;
 	// this is only called on LIVE topics.
 	
 	$score = GetScore( $goods, $bads );
