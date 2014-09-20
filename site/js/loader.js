@@ -83,6 +83,8 @@ function HideLoadingIcon() {
  */
 this.Load = function( url, delay, get ) {
 	if( m_loading ) return;
+	
+	matbox.ResetIdleTime();
 
 	if( !isSet(get) ) get = {};
 	if( !isSet(delay) ) delay = 500;

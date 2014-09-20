@@ -34,6 +34,8 @@ var m_browsing_archive = false; // this is set to true if the user enters
 								// actually presses the archive button
 								// and this is unset when the user presses
 								// the "new" button
+								
+
 					 
 //-----------------------------------------------------------------------------
 var images = new Array();
@@ -54,6 +56,8 @@ preload(
 function GetTime() {
 	return new Date().getTime();
 }
+
+var m_last_activity_time = GetTime()/1000;
 
 //-----------------------------------------------------------------------------
 // read element text with converted line breaks
@@ -607,8 +611,19 @@ matbox.RefreshFromNothing = function () {
 	matbox.Loader.RefreshContent();
 }
 
+//-----------------------------------------------------------------------------
 matbox.ResetBrowsingArchive  = function() {
 	m_browsing_archive = false;
+}
+
+//-----------------------------------------------------------------------------
+matbox.GetIdleTime = function() {
+	return GetTime()/1000 - m_last_activity_time;
+}
+
+//-----------------------------------------------------------------------------
+matbox.ResetIdleTime = function() {
+	m_last_activity_time = GetTime()/1000;
 }
 
 //-----------------------------------------------------------------------------
@@ -623,7 +638,6 @@ matbox.InitializePostLoad    = InitializePostLoad;
 
 matbox.GotoRandom			 = GotoRandom;
 matbox.ShowHelp				 = ShowHelp;
-
 
 })();
 
