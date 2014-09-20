@@ -213,7 +213,7 @@ function CheckTopicExpired2( $id, $goods, $bads, $time ) {
 	$total = $goods+$bads;
 	if( $total == 0 ) return; // no votes, keep forever !:)
 	
-	if( $score < 55 ) {
+	if( $score < $BURY_SCORE ) {
 		// under score 55, delete after 5 minutes
 		// remove after 5 minutes
 		$removetime = $GLOBALS['BURY_TIME'];
