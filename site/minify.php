@@ -103,7 +103,7 @@ function GenerateScript() {
 //-----------------------------------------------------------------------------
 function Run() {
 	if( !file_exists('min') ) {
-		mkdir( 'min', 0700 );
+		mkdir( 'min', 0755 );
 	}
 	
 	GenerateStyle();

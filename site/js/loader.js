@@ -39,6 +39,7 @@ var PAGE_LOAD_FAILED_CONTENT =
  */
 function FadeIn( content ) {
 	HideLoadingIcon();
+	$(window).scrollTop(0);
 	
 	// global initialization here:
 	matbox.InitializePreLoad();

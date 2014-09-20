@@ -16,9 +16,9 @@ function VoteTopic( upvote ) {
 	var vbad = $("#badbutton");
 	
 	if( upvote ) {
-		vgood.html( '<img src="star.png" alt="good" title="good">' );
+		vgood.html( '<div class="speshul_table"><div><img src="star.png" title="good"></div></div>' );
 	} else {
-		vbad.html( '<img src="bad.png" alt="bad" title="bad">' );
+		vbad.html( '<div class="speshul_table"><div><img src="bad.png" title="bad"></div></div>' );
 	}
 	vgood.removeClass( "clickable" );
 	vbad.removeClass( "clickable" );
@@ -42,8 +42,8 @@ function VoteTopic( upvote ) {
 		.fail( function(  ) {
 		
 			m_topic_voted = false;
-			vgood.html( '<img src="unstar.png" alt="good" title="good">' );
-			vbad.html( '<img src="notbad.png" alt="bad" title="bad">' );
+			vgood.html( '<div class="speshul_table"><div><img src="unstar.png" title="good"></div></div>' );
+			vbad.html( '<div class="speshul_table"><div><img src="notbad.png" title="bad"></div></div>' );
 			
 			vgood.addClass( "clickable" );
 			vbad.addClass( "clickable" );

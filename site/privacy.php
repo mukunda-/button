@@ -4,7 +4,7 @@
 	<img src="logo256.png">
 	<p>privacy policy</p>
 	
-	<p>matbox is an accountless anonymous social media platform (AASMP).</p>
+	<p>matbox is an accountless anonymous media platform (AAMP).</p>
 	
 	<p>accountless means we need to track your ip address to know who you are. this means that 
 	certain activities on the site, like votes, might be visible to anyone

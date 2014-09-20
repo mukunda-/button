@@ -221,6 +221,14 @@ try {
 	
 	if( isset( $_GET['random'] ) ) {
 		$g_get_page = GetRandomArchived();
+		if( $g_get_page == 0 ) {
+			echo '
+				<script>matbox.ResetBrowsingArchive();</script>
+				<div class="topic nothing clickable" id="topic" onclick="matbox.Loader.RefreshContent()">
+					the archive is empty.
+				</div>';
+				die();
+		}
 	}
 	
 	if( $g_get_page == $g_account->page ) {

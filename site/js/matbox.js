@@ -607,6 +607,10 @@ matbox.RefreshFromNothing = function () {
 	matbox.Loader.RefreshContent();
 }
 
+matbox.ResetBrowsingArchive  = function() {
+	m_browsing_archive = false;
+}
+
 //-----------------------------------------------------------------------------
 matbox.CompositionKeyPressed = CompositionKeyPressed;
 matbox.ReplyKeyPressed       = ReplyKeyPressed;
@@ -619,6 +623,7 @@ matbox.InitializePostLoad    = InitializePostLoad;
 
 matbox.GotoRandom			 = GotoRandom;
 matbox.ShowHelp				 = ShowHelp;
+
 
 })();
 

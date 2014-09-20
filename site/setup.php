@@ -100,10 +100,10 @@ function AddTestPage() {
 	$sql->safequery(
 		"INSERT INTO ArchiveIndex (page) VALUES (".$row[0].")" );
 }
-
+/*
 //----------------------------------------------------------------------------
 for( $i = 0; $i < 35; $i++ ) {
 	AddTestPage();
-}
+}*/
  
 ?>

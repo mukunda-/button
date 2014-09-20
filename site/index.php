@@ -3,6 +3,12 @@
 require_once 'config.php'; 
 require_once 'minify.php';
 require_once 'htaccess.php';
+
+if( !isset($DEBUG) ) {
+	chmod( "libs", 0700 );
+	chmod( "css", 0700 );
+	chmod( "js", 0700 );
+}
   
 ?><!DOCTYPE html>
 <html>
