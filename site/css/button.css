@@ -13,8 +13,6 @@ body {
 .topic, .options>div, 
 .replies .reply, 
 .submit, 
-.navigation .tab, 
-.navbar,
 .panel .button {
 	
 	border-radius: 16px;
