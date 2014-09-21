@@ -203,7 +203,7 @@ function FinalizeTopic( $id ) {
 
 //-----------------------------------------------------------------------------
 function CheckTopicExpired2( $id, $goods, $bads, $time ) {
-	global $SCORE_RAMP_CONSTANT, $BURY_SCORE;
+	global $SCORE_RAMP_CONSTANT, $BURY_SCORE, $BURY_SCORE2;
 	// this is only called on LIVE topics.
 	
 	$score = GetScore( $goods, $bads );
@@ -213,11 +213,14 @@ function CheckTopicExpired2( $id, $goods, $bads, $time ) {
 	$total = $goods+$bads;
 	if( $total == 0 ) return; // no votes, keep forever !:)
 	
-	if( $score < $BURY_SCORE ) {
+	if( $score < $BURY_SCORE2 ) {	
 		// under score 55, delete after 5 minutes
 		// remove after 5 minutes
 		$removetime = $GLOBALS['BURY_TIME'];
-		$delete = true;
+		
+		if( $score < $BURY_SCORE ) {
+			$delete = true;
+		}
 	} else {
 		// "old" after 30 minutes
 		$removetime = $GLOBALS['OLD_TIME'];

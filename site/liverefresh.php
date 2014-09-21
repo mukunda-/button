@@ -90,7 +90,11 @@ try {
 		$a = array();
 		$a['id'] = (int)$row['id'];
 		$a['content'] = $row['content'];
-		$a['vote'] = is_null($row['vote']) ? NULL : ((boolean)$row['vote']);
+		if( $state == TopicStates::Live ) {
+			$a['vote'] = is_null($row['vote']) ? NULL : ((boolean)$row['vote']);
+		} else {
+			$a['vote'] = null;
+		}
 		if( $state == TopicStates::Old ) {
 			$a['goods'] = $row['goods'];
 			$a['bads'] = $row['bads'];

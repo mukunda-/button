@@ -96,6 +96,13 @@ function IsPageValid( $account ) {
 			return true;
 		}
 	}
+	
+	if( $row['state'] == TopicStates::Old ) {
+		
+		// old. choose new topic on next refresh.
+		SaveAccount( $account, 0 );
+	}
+	
 	return true;
 }
 

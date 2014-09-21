@@ -83,6 +83,26 @@ function ChainFadeComments( start, end ) {
 }
 
 //-----------------------------------------------------------------------------
+function ScoreRank( a ) {
+	if( a < 60 ) return "rank_cancer";
+	if( a < 70 ) return "rank_poop";
+	if( a < 80 ) return "rank_ok";
+	if( a < 90 ) return "rank_good";
+	if( a < 99 ) return "rank_great";
+	return "rank_god";
+}
+
+//-----------------------------------------------------------------------------
+function ScoreRankName( a ) {
+	if( a < 60 ) return "cancer";
+	if( a < 70 ) return "bad";
+	if( a < 80 ) return "okay";
+	if( a < 90 ) return "good";
+	if( a < 99 ) return "great";
+	return "LEGENDARY";
+}
+
+//-----------------------------------------------------------------------------
 function OnAjaxDone( data ) { 
 	
 	if( data == 'error' ) {
@@ -110,8 +130,8 @@ function OnAjaxDone( data ) {
 				m_last_comment = entry.id;
 			}
 			
+			var html = [];
 			if( topicstate == "live" ) {
-				var html = [];
 				html.push( '<div class="reply" id="comment'+m_num_comments+'">' + entry.content );
 				var selected = entry.vote === true ? " selected": "";
 				html.push( '<div class="rvote rgood '+selected+'" id="votegood'+entry.id+'" onclick="matbox.VoteComment.Good('+entry.id+')">' );
@@ -131,9 +151,7 @@ function OnAjaxDone( data ) {
 				}
 				html.push( '</div> ' );
 				
-				
 			} else {
-				var html = [];
 				html.push( '<div class="reply" id="comment'+m_num_comments+'">' + entry.content );
 				html.push( '<div class="score '+ ScoreRank(entry.score) +'" title="'+ScoreRankName(entry.score)+'">' + entry.score + '</div>' );
 				html.push( '</div>&nbsp;' );

@@ -261,26 +261,6 @@ function CloseOld() {
 }
 
 //-----------------------------------------------------------------------------
-function ScoreRank( a ) {
-	if( a < 60 ) return "rank_cancer";
-	if( a < 70 ) return "rank_poop";
-	if( a < 80 ) return "rank_ok";
-	if( a < 90 ) return "rank_good";
-	if( a < 99 ) return "rank_great";
-	return "rank_god";
-}
-
-//-----------------------------------------------------------------------------
-function ScoreRankName( a ) {
-	if( a < 60 ) return "cancer";
-	if( a < 70 ) return "bad";
-	if( a < 80 ) return "okay";
-	if( a < 90 ) return "good";
-	if( a < 99 ) return "great";
-	return "LEGENDARY";
-}
-
-//-----------------------------------------------------------------------------
 function InitializePreLoad() {
 	matbox.Navbar.Hide();
 	matbox.LiveRefresh.Reset();
@@ -434,7 +414,8 @@ function GotoRandom() {
 
 
 function GotoNew() {
-	matbox.Loader.Load( "content.php" );
+
+	matbox.Loader.Load( "content.php", undefined, { "new":""} );
 	HideHelpButton();
 	m_browsing_archive = false;
 	m_timeouts.Set( 
