@@ -74,6 +74,7 @@ function ReadText( element ) {
 	// return the raw text
 	return mb.text().trim();
 }
+matbox.ReadText = ReadText;
 
 //-----------------------------------------------------------------------------
 function SubmitComposition() {

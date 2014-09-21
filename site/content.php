@@ -301,9 +301,11 @@ function FormatEmbedded( $e ) {
 function ReplaceEmbeds( $content ) {
 	$embeds = array();
 	
-	$content = htmlspecialchars( $content );
+	//$content = htmlspecialchars( $content );
 	// this is already done during sanitization. but just in case again
 	// here if there is some poop in the database.
+	// -- um, the database actually has html in the content, so we cant do this
+	// here.
 	
 	$start = 0;
 	for( $max = 10; $max; $max-- ) {
@@ -375,7 +377,6 @@ function ShowTopic() {
 	
 	if( !$topic->valid ) {
 		?>
-			echo POOPOO;
 			<div class="topic nothing clickable" id="topic" onclick="matbox.Loader.RefreshContent()">
 				that sample doesn't exist
 			</div>
