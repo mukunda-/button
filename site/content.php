@@ -77,6 +77,7 @@ function IsPageValid( $account ) {
 	// TODO make sure they get a new topic on the next refresh.
 	if( $row['state'] == TopicStates::Deleted ) {
 		SaveAccount( $account, 0 );
+		if( $_GET['new'] ) return false; // if they click on "new" get new page instantly.
 		return true;
 	}
 	if( $row['state'] == TopicStates::Composing && time() >= ($row['time'] + $GLOBALS['COMPOSE_TIMEOUT'] ) ) {
@@ -93,6 +94,7 @@ function IsPageValid( $account ) {
 				// deleted. choose new topic on next refresh.
 				SaveAccount( $account, 0 );
 			}
+			if( $_GET['new'] ) return false; // if they click on "new" get new page instantly.
 			return true;
 		}
 	}
@@ -101,6 +103,7 @@ function IsPageValid( $account ) {
 		
 		// old. choose new topic on next refresh.
 		SaveAccount( $account, 0 );
+		if( $_GET['new'] ) return false; // if they click on "new" get new page instantly.
 	}
 	
 	return true;
