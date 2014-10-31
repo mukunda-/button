@@ -256,7 +256,7 @@ function CheckTopicExpired( $id ) {
 		"SELECT state,goods,bads,time FROM Topics WHERE id=$id");
 	
 	$row = $result->fetch_row();
-	if( $row === FALSE ) {
+	if( $row === NULL ) {
 		throw new Exception( 'Invalid page.' );
 	}
 	if( $row[0] == TopicStates::Old ) return 2;

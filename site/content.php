@@ -29,7 +29,7 @@ class Topic {
 		
 		$row = $result->fetch_assoc();
 	
-		if( $row === FALSE ) return; 
+		if( $row === NULL ) return; 
 		$state = $row['state'];
 		if( $state == TopicStates::Live || $state == TopicStates::Composing ) {
 			if( $page != $account->page ) {
@@ -68,7 +68,7 @@ function IsPageValid( $account ) {
 		WHERE id='.$account->page );
 	
 	$row = $result->fetch_assoc();
-	if( $row === FALSE ) return false;
+	if( $row === NULL ) return false;
 	
 	if( (!is_null( $row['vote'] )) && $row['vote'] == 0 ) {
 		// downvoted post, don't show.
@@ -126,7 +126,7 @@ function GetRandomArchived() {
 		"SELECT page FROM ArchiveIndex WHERE id=$id" );
 	
 	$row = $result->fetch_row();
-	if( $row === FALSE ) return 0;
+	if( $row === NULL ) return 0;
 
 	return $row[0];
 }

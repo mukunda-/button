@@ -1,0 +1,3 @@
+fixup data pasted into composer
+
+re-enable composer on error

@@ -45,7 +45,7 @@ try {
 	
 	$row = $result->fetch_row();
 	$state = 0;
-	if( $row === FALSE ) {
+	if( $row === NULL ) {
 		exit( 'error' );
 	} else {
 		$state = $row[0];
