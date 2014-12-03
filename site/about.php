@@ -21,7 +21,7 @@
 	
 	
 	<div class="panel">
-		<div class="button" onclick="matbox.Loader.RefreshContent()">okay..</div> 
+		<div class="button" onclick="matbox.Loader.RefreshContent()">okay...</div> 
 		<div class="button" onclick="matbox.Loader.Load('privacy.php')">privacy policy</div>
 	</div>
 </div>
